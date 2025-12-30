@@ -205,3 +205,19 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+# Data files
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Results
+results/models/*
+*.pkl
+*.h5
+
+# Logs
+experiments/logs/*
+
+# Mac
+.DS_Store
