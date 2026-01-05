@@ -1,0 +1,1514 @@
+ID	Split	Source
+mol_0	train	sampled
+mol_1	train	sampled
+mol_2	train	sampled
+mol_3	test	sampled
+mol_4	train	sampled
+mol_5	train	sampled
+mol_6	train	sampled
+mol_7	train	sampled
+mol_8	val	sampled
+mol_9	train	sampled
+mol_10	train	sampled
+mol_11	train	sampled
+mol_12	train	sampled
+mol_13	val	sampled
+mol_14	train	sampled
+mol_15	train	sampled
+mol_16	test	sampled
+mol_17	train	sampled
+mol_18	train	sampled
+mol_19	train	sampled
+mol_20	train	sampled
+mol_21	train	sampled
+mol_22	train	sampled
+mol_23	train	sampled
+mol_24	val	sampled
+mol_25	train	sampled
+mol_26	train	sampled
+mol_27	val	sampled
+mol_28	train	sampled
+mol_29	train	sampled
+mol_30	train	sampled
+mol_31	val	sampled
+mol_32	train	sampled
+mol_33	train	sampled
+mol_34	train	sampled
+mol_35	train	sampled
+mol_36	train	sampled
+mol_37	train	sampled
+mol_38	train	sampled
+mol_39	train	sampled
+mol_40	val	sampled
+mol_41	train	sampled
+mol_42	val	sampled
+mol_43	train	sampled
+mol_44	train	sampled
+mol_45	train	sampled
+mol_46	train	sampled
+mol_47	train	sampled
+mol_48	train	sampled
+mol_49	train	sampled
+mol_50	train	sampled
+mol_51	test	sampled
+mol_52	train	sampled
+mol_53	val	sampled
+mol_54	train	sampled
+mol_55	train	sampled
+mol_56	train	sampled
+mol_57	train	sampled
+mol_58	train	sampled
+mol_59	train	sampled
+mol_60	train	sampled
+mol_61	train	sampled
+mol_62	train	sampled
+mol_63	train	sampled
+mol_64	train	sampled
+mol_65	train	sampled
+mol_66	train	sampled
+mol_67	train	sampled
+mol_68	train	sampled
+mol_69	train	sampled
+mol_70	train	sampled
+mol_71	train	sampled
+mol_72	train	sampled
+mol_73	train	sampled
+mol_74	train	sampled
+mol_75	val	sampled
+mol_76	val	sampled
+mol_77	val	sampled
+mol_78	train	sampled
+mol_79	val	sampled
+mol_80	train	sampled
+mol_81	train	sampled
+mol_82	train	sampled
+mol_83	train	sampled
+mol_84	train	sampled
+mol_85	train	sampled
+mol_86	val	sampled
+mol_87	train	sampled
+mol_88	train	sampled
+mol_89	train	sampled
+mol_90	train	sampled
+mol_91	val	sampled
+mol_92	train	sampled
+mol_93	train	sampled
+mol_94	train	sampled
+mol_95	train	sampled
+mol_96	train	sampled
+mol_97	val	sampled
+mol_98	val	sampled
+mol_99	train	sampled
+mol_100	train	sampled
+mol_101	train	sampled
+mol_102	test	sampled
+mol_103	train	sampled
+mol_104	val	sampled
+mol_105	train	sampled
+mol_106	val	sampled
+mol_107	train	sampled
+mol_108	train	sampled
+mol_109	train	sampled
+mol_110	train	sampled
+mol_111	val	sampled
+mol_112	train	sampled
+mol_113	train	sampled
+mol_114	val	sampled
+mol_115	train	sampled
+mol_116	train	sampled
+mol_117	train	sampled
+mol_118	train	sampled
+mol_119	train	sampled
+mol_120	train	sampled
+mol_121	train	sampled
+mol_122	val	sampled
+mol_123	train	sampled
+mol_124	train	sampled
+mol_125	train	sampled
+mol_126	train	sampled
+mol_127	train	sampled
+mol_128	train	sampled
+mol_129	train	sampled
+mol_130	train	sampled
+mol_131	val	sampled
+mol_132	train	sampled
+mol_133	train	sampled
+mol_134	train	sampled
+mol_135	train	sampled
+mol_136	train	sampled
+mol_137	train	sampled
+mol_138	train	sampled
+mol_139	train	sampled
+mol_140	train	sampled
+mol_141	val	sampled
+mol_142	train	sampled
+mol_143	train	sampled
+mol_144	val	sampled
+mol_145	train	sampled
+mol_146	train	sampled
+mol_147	train	sampled
+mol_148	train	sampled
+mol_149	train	sampled
+mol_150	train	sampled
+mol_151	val	sampled
+mol_152	train	sampled
+mol_153	train	sampled
+mol_154	train	sampled
+mol_155	train	sampled
+mol_156	train	sampled
+mol_157	train	sampled
+mol_158	train	sampled
+mol_159	train	sampled
+mol_160	test	sampled
+mol_161	train	sampled
+mol_162	train	sampled
+mol_163	val	sampled
+mol_164	train	sampled
+mol_165	val	sampled
+mol_166	train	sampled
+mol_167	train	sampled
+mol_168	test	sampled
+mol_169	train	sampled
+mol_170	train	sampled
+mol_171	train	sampled
+mol_172	train	sampled
+mol_173	train	sampled
+mol_174	train	sampled
+mol_175	train	sampled
+mol_176	test	sampled
+mol_177	train	sampled
+mol_178	train	sampled
+mol_179	train	sampled
+mol_180	train	sampled
+mol_181	train	sampled
+mol_182	train	sampled
+mol_183	test	sampled
+mol_184	train	sampled
+mol_185	train	sampled
+mol_186	train	sampled
+mol_187	train	sampled
+mol_188	train	sampled
+mol_189	train	sampled
+mol_190	val	sampled
+mol_191	train	sampled
+mol_192	train	sampled
+mol_193	train	sampled
+mol_194	train	sampled
+mol_195	train	sampled
+mol_196	train	sampled
+mol_197	train	sampled
+mol_198	train	sampled
+mol_199	train	sampled
+mol_200	train	sampled
+mol_201	train	sampled
+mol_202	train	sampled
+mol_203	train	sampled
+mol_204	val	sampled
+mol_205	val	sampled
+mol_206	val	sampled
+mol_207	train	sampled
+mol_208	test	sampled
+mol_209	train	sampled
+mol_210	val	sampled
+mol_211	train	sampled
+mol_212	train	sampled
+mol_213	train	sampled
+mol_214	train	sampled
+mol_215	train	sampled
+mol_216	train	sampled
+mol_217	train	sampled
+mol_218	train	sampled
+mol_219	train	sampled
+mol_220	train	sampled
+mol_221	val	sampled
+mol_222	train	sampled
+mol_223	train	sampled
+mol_224	val	sampled
+mol_225	val	sampled
+mol_226	test	sampled
+mol_227	train	sampled
+mol_228	val	sampled
+mol_229	train	sampled
+mol_230	train	sampled
+mol_231	train	sampled
+mol_232	train	sampled
+mol_233	train	sampled
+mol_234	train	sampled
+mol_235	train	sampled
+mol_236	train	sampled
+mol_237	train	sampled
+mol_238	train	sampled
+mol_239	train	sampled
+mol_240	train	sampled
+mol_241	train	sampled
+mol_242	train	sampled
+mol_243	train	sampled
+mol_244	train	sampled
+mol_245	train	sampled
+mol_246	train	sampled
+mol_247	train	sampled
+mol_248	train	sampled
+mol_249	train	sampled
+mol_250	train	sampled
+mol_251	train	sampled
+mol_252	train	sampled
+mol_253	train	sampled
+mol_254	train	sampled
+mol_255	train	sampled
+mol_256	test	sampled
+mol_257	train	sampled
+mol_258	train	sampled
+mol_259	train	sampled
+mol_260	train	sampled
+mol_261	train	sampled
+mol_262	train	sampled
+mol_263	train	sampled
+mol_264	train	sampled
+mol_265	train	sampled
+mol_266	val	sampled
+mol_267	train	sampled
+mol_268	train	sampled
+mol_269	val	sampled
+mol_270	train	sampled
+mol_271	val	sampled
+mol_272	train	sampled
+mol_273	train	sampled
+mol_274	train	sampled
+mol_275	val	sampled
+mol_276	train	sampled
+mol_277	train	sampled
+mol_278	train	sampled
+mol_279	train	sampled
+mol_280	val	sampled
+mol_281	train	sampled
+mol_282	train	sampled
+mol_283	train	sampled
+mol_284	train	sampled
+mol_285	train	sampled
+mol_286	train	sampled
+mol_287	train	sampled
+mol_288	train	sampled
+mol_289	train	sampled
+mol_290	train	sampled
+mol_291	train	sampled
+mol_292	train	sampled
+mol_293	train	sampled
+mol_294	train	sampled
+mol_295	train	sampled
+mol_296	val	sampled
+mol_297	train	sampled
+mol_298	train	sampled
+mol_299	train	sampled
+mol_300	train	sampled
+mol_301	train	sampled
+mol_302	val	sampled
+mol_303	train	sampled
+mol_304	train	sampled
+mol_305	train	sampled
+mol_306	train	sampled
+mol_307	train	sampled
+mol_308	val	sampled
+mol_309	train	sampled
+mol_310	train	sampled
+mol_311	val	sampled
+mol_312	train	sampled
+mol_313	train	sampled
+mol_314	train	sampled
+mol_315	val	sampled
+mol_316	train	sampled
+mol_317	train	sampled
+mol_318	train	sampled
+mol_319	test	sampled
+mol_320	val	sampled
+mol_321	val	sampled
+mol_322	val	sampled
+mol_323	val	sampled
+mol_324	train	sampled
+mol_325	train	sampled
+mol_326	train	sampled
+mol_327	val	sampled
+mol_328	train	sampled
+mol_329	train	sampled
+mol_330	val	sampled
+mol_331	train	sampled
+mol_332	train	sampled
+mol_333	train	sampled
+mol_334	train	sampled
+mol_335	train	sampled
+mol_336	train	sampled
+mol_337	train	sampled
+mol_338	train	sampled
+mol_339	train	sampled
+mol_340	val	sampled
+mol_341	train	sampled
+mol_342	train	sampled
+mol_343	val	sampled
+mol_344	train	sampled
+mol_345	train	sampled
+mol_346	train	sampled
+mol_347	train	sampled
+mol_348	train	sampled
+mol_349	train	sampled
+mol_350	train	sampled
+mol_351	train	sampled
+mol_352	train	sampled
+mol_353	train	sampled
+mol_354	val	sampled
+mol_355	train	sampled
+mol_356	train	sampled
+mol_357	train	sampled
+mol_358	test	sampled
+mol_359	train	sampled
+mol_360	test	sampled
+mol_361	train	sampled
+mol_362	train	sampled
+mol_363	val	sampled
+mol_364	train	sampled
+mol_365	train	sampled
+mol_366	val	sampled
+mol_367	val	sampled
+mol_368	test	sampled
+mol_369	train	sampled
+mol_370	train	sampled
+mol_371	train	sampled
+mol_372	train	sampled
+mol_373	val	sampled
+mol_374	val	sampled
+mol_375	val	sampled
+mol_376	train	sampled
+mol_377	train	sampled
+mol_378	val	assigned
+mol_379	val	assigned
+mol_380	train	assigned
+mol_381	train	assigned
+mol_382	train	assigned
+mol_383	train	assigned
+mol_384	train	assigned
+mol_385	train	assigned
+mol_386	train	assigned
+mol_387	train	assigned
+mol_388	train	assigned
+mol_389	train	assigned
+mol_390	train	assigned
+mol_391	val	assigned
+mol_392	val	assigned
+mol_393	train	assigned
+mol_394	train	assigned
+mol_395	train	assigned
+mol_396	train	assigned
+mol_397	val	assigned
+mol_398	train	assigned
+mol_399	train	assigned
+mol_400	train	assigned
+mol_401	train	assigned
+mol_402	val	assigned
+mol_403	train	assigned
+mol_404	val	assigned
+mol_405	train	assigned
+mol_406	test	assigned
+mol_407	val	assigned
+mol_408	val	assigned
+mol_409	train	assigned
+mol_410	train	assigned
+mol_411	train	assigned
+mol_412	val	assigned
+mol_413	train	assigned
+mol_414	val	assigned
+mol_415	train	assigned
+mol_416	train	assigned
+mol_417	train	assigned
+mol_418	train	assigned
+mol_419	train	assigned
+mol_420	val	assigned
+mol_421	train	assigned
+mol_422	train	assigned
+mol_423	train	assigned
+mol_424	train	assigned
+mol_425	train	assigned
+mol_426	train	assigned
+mol_427	train	assigned
+mol_428	train	assigned
+mol_429	test	assigned
+mol_430	train	assigned
+mol_431	train	assigned
+mol_432	train	assigned
+mol_433	train	assigned
+mol_434	train	assigned
+mol_435	train	assigned
+mol_436	train	assigned
+mol_437	val	assigned
+mol_438	train	assigned
+mol_439	train	assigned
+mol_440	train	assigned
+mol_441	val	assigned
+mol_442	train	assigned
+mol_443	train	assigned
+mol_444	train	assigned
+mol_445	train	assigned
+mol_446	train	assigned
+mol_447	val	assigned
+mol_448	train	assigned
+mol_449	train	assigned
+mol_450	train	assigned
+mol_451	train	assigned
+mol_452	train	assigned
+mol_453	train	assigned
+mol_454	train	assigned
+mol_455	train	assigned
+mol_456	val	assigned
+mol_457	train	assigned
+mol_458	train	assigned
+mol_459	train	assigned
+mol_460	val	assigned
+mol_461	train	assigned
+mol_462	train	assigned
+mol_463	train	assigned
+mol_464	train	assigned
+mol_465	train	assigned
+mol_466	train	assigned
+mol_467	train	assigned
+mol_468	val	assigned
+mol_469	val	assigned
+mol_470	val	assigned
+mol_471	val	assigned
+mol_472	val	assigned
+mol_473	val	assigned
+mol_474	val	assigned
+mol_475	val	assigned
+mol_476	val	assigned
+mol_477	val	assigned
+mol_478	val	assigned
+mol_479	train	assigned
+mol_480	val	assigned
+mol_481	train	assigned
+mol_482	train	assigned
+mol_483	train	assigned
+mol_484	train	assigned
+mol_485	train	assigned
+mol_486	train	assigned
+mol_487	train	assigned
+mol_488	train	assigned
+mol_489	train	assigned
+mol_490	train	assigned
+mol_491	train	assigned
+mol_492	train	assigned
+mol_493	val	assigned
+mol_494	train	assigned
+mol_495	val	assigned
+mol_496	train	assigned
+mol_497	train	assigned
+mol_498	test	assigned
+mol_499	val	assigned
+mol_500	train	assigned
+mol_501	train	assigned
+mol_502	train	assigned
+mol_503	train	assigned
+mol_504	train	assigned
+mol_505	train	assigned
+mol_506	train	assigned
+mol_507	train	assigned
+mol_508	val	assigned
+mol_509	val	assigned
+mol_510	train	assigned
+mol_511	train	assigned
+mol_512	train	assigned
+mol_513	val	assigned
+mol_514	train	assigned
+mol_515	train	assigned
+mol_516	train	assigned
+mol_517	train	assigned
+mol_518	train	assigned
+mol_519	val	assigned
+mol_520	val	assigned
+mol_521	train	assigned
+mol_522	train	assigned
+mol_523	val	assigned
+mol_524	train	assigned
+mol_525	train	assigned
+mol_526	val	assigned
+mol_527	val	assigned
+mol_528	val	assigned
+mol_529	train	assigned
+mol_530	train	assigned
+mol_531	train	assigned
+mol_532	train	assigned
+mol_533	train	assigned
+mol_534	val	assigned
+mol_535	val	assigned
+mol_536	train	assigned
+mol_537	train	assigned
+mol_538	train	assigned
+mol_539	val	assigned
+mol_540	train	assigned
+mol_541	train	assigned
+mol_542	train	assigned
+mol_543	train	assigned
+mol_544	train	assigned
+mol_545	train	assigned
+mol_546	train	assigned
+mol_547	train	assigned
+mol_548	train	assigned
+mol_549	train	assigned
+mol_550	test	assigned
+mol_551	val	assigned
+mol_552	train	assigned
+mol_553	val	assigned
+mol_554	val	assigned
+mol_555	val	assigned
+mol_556	val	assigned
+mol_557	val	assigned
+mol_558	val	assigned
+mol_559	val	assigned
+mol_560	train	assigned
+mol_561	train	assigned
+mol_562	train	assigned
+mol_563	train	assigned
+mol_564	train	assigned
+mol_565	train	assigned
+mol_566	train	assigned
+mol_567	train	assigned
+mol_568	val	assigned
+mol_569	train	assigned
+mol_570	train	assigned
+mol_571	train	assigned
+mol_572	train	assigned
+mol_573	train	assigned
+mol_574	train	assigned
+mol_575	val	assigned
+mol_576	val	assigned
+mol_577	val	assigned
+mol_578	train	assigned
+mol_579	train	assigned
+mol_580	train	assigned
+mol_581	test	assigned
+mol_582	val	assigned
+mol_583	val	assigned
+mol_584	train	assigned
+mol_585	train	assigned
+mol_586	val	assigned
+mol_587	train	assigned
+mol_588	train	assigned
+mol_589	train	assigned
+mol_590	train	assigned
+mol_591	train	assigned
+mol_592	train	assigned
+mol_593	train	assigned
+mol_594	val	assigned
+mol_595	train	assigned
+mol_596	train	assigned
+mol_597	train	assigned
+mol_598	val	assigned
+mol_599	train	assigned
+mol_600	train	assigned
+mol_601	val	assigned
+mol_602	val	assigned
+mol_603	train	assigned
+mol_604	train	assigned
+mol_605	train	assigned
+mol_606	train	assigned
+mol_607	train	assigned
+mol_608	val	assigned
+mol_609	val	assigned
+mol_610	train	assigned
+mol_611	train	assigned
+mol_612	train	assigned
+mol_613	train	assigned
+mol_614	train	assigned
+mol_615	test	assigned
+mol_616	train	assigned
+mol_617	val	assigned
+mol_618	train	assigned
+mol_619	val	assigned
+mol_620	val	assigned
+mol_621	train	assigned
+mol_622	train	assigned
+mol_623	train	assigned
+mol_624	train	assigned
+mol_625	train	assigned
+mol_626	val	assigned
+mol_627	val	assigned
+mol_628	val	assigned
+mol_629	train	assigned
+mol_630	val	assigned
+mol_631	train	assigned
+mol_632	train	assigned
+mol_633	val	assigned
+mol_634	val	assigned
+mol_635	train	assigned
+mol_636	train	assigned
+mol_637	train	assigned
+mol_638	train	assigned
+mol_639	train	assigned
+mol_640	val	assigned
+mol_641	val	assigned
+mol_642	train	assigned
+mol_643	train	assigned
+mol_644	val	assigned
+mol_645	train	assigned
+mol_646	train	assigned
+mol_647	train	assigned
+mol_648	train	assigned
+mol_649	train	assigned
+mol_650	train	assigned
+mol_651	train	assigned
+mol_652	train	assigned
+mol_653	train	assigned
+mol_654	train	assigned
+mol_655	train	assigned
+mol_656	train	assigned
+mol_657	train	assigned
+mol_658	train	assigned
+mol_659	train	assigned
+mol_660	train	assigned
+mol_661	train	assigned
+mol_662	val	assigned
+mol_663	val	assigned
+mol_664	train	assigned
+mol_665	train	assigned
+mol_666	train	assigned
+mol_667	train	assigned
+mol_668	val	assigned
+mol_669	train	assigned
+mol_670	val	assigned
+mol_671	train	assigned
+mol_672	train	assigned
+mol_673	train	assigned
+mol_674	train	assigned
+mol_675	val	assigned
+mol_676	val	assigned
+mol_677	val	assigned
+mol_678	val	assigned
+mol_679	train	assigned
+mol_680	val	assigned
+mol_681	train	assigned
+mol_682	train	assigned
+mol_683	train	assigned
+mol_684	train	assigned
+mol_685	train	assigned
+mol_686	train	assigned
+mol_687	train	assigned
+mol_688	train	assigned
+mol_689	train	assigned
+mol_690	val	assigned
+mol_691	val	assigned
+mol_692	train	assigned
+mol_693	train	assigned
+mol_694	test	assigned
+mol_695	train	assigned
+mol_696	val	assigned
+mol_697	val	assigned
+mol_698	train	assigned
+mol_699	val	assigned
+mol_700	train	assigned
+mol_701	train	assigned
+mol_702	val	assigned
+mol_703	train	assigned
+mol_704	val	assigned
+mol_705	train	assigned
+mol_706	train	assigned
+mol_707	val	assigned
+mol_708	train	assigned
+mol_709	train	assigned
+mol_710	train	assigned
+mol_711	train	assigned
+mol_712	train	assigned
+mol_713	train	assigned
+mol_714	train	assigned
+mol_715	train	assigned
+mol_716	train	assigned
+mol_717	val	assigned
+mol_718	train	assigned
+mol_719	train	assigned
+mol_720	train	assigned
+mol_721	train	assigned
+mol_722	train	assigned
+mol_723	train	assigned
+mol_724	train	assigned
+mol_725	train	assigned
+mol_726	train	assigned
+mol_727	train	assigned
+mol_728	train	assigned
+mol_729	train	assigned
+mol_730	train	assigned
+mol_731	train	assigned
+mol_732	val	assigned
+mol_733	train	assigned
+mol_734	train	assigned
+mol_735	train	assigned
+mol_736	train	assigned
+mol_737	train	assigned
+mol_738	val	assigned
+mol_739	val	assigned
+mol_740	val	assigned
+mol_741	train	assigned
+mol_742	train	assigned
+mol_743	train	assigned
+mol_744	train	assigned
+mol_745	train	assigned
+mol_746	val	assigned
+mol_747	val	assigned
+mol_748	val	assigned
+mol_749	train	assigned
+mol_750	train	assigned
+mol_751	train	assigned
+mol_752	train	assigned
+mol_753	train	assigned
+mol_754	train	assigned
+mol_755	train	assigned
+mol_756	train	assigned
+mol_757	test	assigned
+mol_758	train	assigned
+mol_759	train	assigned
+mol_760	val	assigned
+mol_761	train	assigned
+mol_762	train	assigned
+mol_763	train	assigned
+mol_764	train	assigned
+mol_765	train	assigned
+mol_766	train	assigned
+mol_767	train	assigned
+mol_768	val	assigned
+mol_769	val	assigned
+mol_770	val	assigned
+mol_771	train	assigned
+mol_772	train	assigned
+mol_773	train	assigned
+mol_774	train	assigned
+mol_775	train	assigned
+mol_776	train	assigned
+mol_777	train	assigned
+mol_778	train	assigned
+mol_779	val	assigned
+mol_780	train	assigned
+mol_781	val	assigned
+mol_782	train	assigned
+mol_783	val	assigned
+mol_784	train	assigned
+mol_785	train	assigned
+mol_786	train	assigned
+mol_787	train	assigned
+mol_788	train	assigned
+mol_789	train	assigned
+mol_790	val	assigned
+mol_791	train	assigned
+mol_792	train	assigned
+mol_793	val	assigned
+mol_794	train	assigned
+mol_795	train	assigned
+mol_796	train	assigned
+mol_797	train	assigned
+mol_798	val	assigned
+mol_799	train	assigned
+mol_800	train	assigned
+mol_801	train	assigned
+mol_802	train	assigned
+mol_803	val	assigned
+mol_804	train	assigned
+mol_805	train	assigned
+mol_806	train	assigned
+mol_807	train	assigned
+mol_808	train	assigned
+mol_809	train	assigned
+mol_810	train	assigned
+mol_811	train	assigned
+mol_812	val	assigned
+mol_813	train	assigned
+mol_814	train	assigned
+mol_815	val	assigned
+mol_816	val	assigned
+mol_817	val	assigned
+mol_818	train	assigned
+mol_819	train	assigned
+mol_820	test	assigned
+mol_821	train	assigned
+mol_822	val	assigned
+mol_823	train	assigned
+mol_824	train	assigned
+mol_825	train	assigned
+mol_826	train	assigned
+mol_827	train	assigned
+mol_828	val	assigned
+mol_829	val	assigned
+mol_830	val	assigned
+mol_831	train	assigned
+mol_832	train	assigned
+mol_833	train	assigned
+mol_834	train	assigned
+mol_835	val	assigned
+mol_836	val	assigned
+mol_837	train	assigned
+mol_838	train	assigned
+mol_839	train	assigned
+mol_840	train	assigned
+mol_841	train	assigned
+mol_842	train	assigned
+mol_843	train	assigned
+mol_844	val	assigned
+mol_845	train	assigned
+mol_846	train	assigned
+mol_847	val	assigned
+mol_848	train	assigned
+mol_849	train	assigned
+mol_850	train	assigned
+mol_851	val	assigned
+mol_852	val	assigned
+mol_853	train	assigned
+mol_854	train	assigned
+mol_855	val	assigned
+mol_856	train	assigned
+mol_857	train	assigned
+mol_858	train	assigned
+mol_859	train	assigned
+mol_860	train	assigned
+mol_861	train	assigned
+mol_862	train	assigned
+mol_863	val	assigned
+mol_864	train	assigned
+mol_865	train	assigned
+mol_866	train	assigned
+mol_867	train	assigned
+mol_868	train	assigned
+mol_869	train	assigned
+mol_870	train	assigned
+mol_871	train	assigned
+mol_872	train	assigned
+mol_873	train	assigned
+mol_874	train	assigned
+mol_875	val	assigned
+mol_876	train	assigned
+mol_877	train	assigned
+mol_878	train	assigned
+mol_879	train	assigned
+mol_880	val	assigned
+mol_881	train	assigned
+mol_882	val	assigned
+mol_883	val	assigned
+mol_884	val	assigned
+mol_885	train	assigned
+mol_886	train	assigned
+mol_887	train	assigned
+mol_888	train	assigned
+mol_889	train	assigned
+mol_890	train	assigned
+mol_891	train	assigned
+mol_892	train	assigned
+mol_893	train	assigned
+mol_894	train	assigned
+mol_895	val	assigned
+mol_896	train	assigned
+mol_897	train	assigned
+mol_898	train	assigned
+mol_899	train	assigned
+mol_900	train	assigned
+mol_901	train	assigned
+mol_902	train	assigned
+mol_903	train	assigned
+mol_904	train	assigned
+mol_905	val	assigned
+mol_906	train	assigned
+mol_907	train	assigned
+mol_908	train	assigned
+mol_909	val	assigned
+mol_910	train	assigned
+mol_911	train	assigned
+mol_912	train	assigned
+mol_913	train	assigned
+mol_914	test	assigned
+mol_915	train	assigned
+mol_916	val	assigned
+mol_917	train	assigned
+mol_918	train	assigned
+mol_919	train	assigned
+mol_920	train	assigned
+mol_921	train	assigned
+mol_922	train	assigned
+mol_923	train	assigned
+mol_924	train	assigned
+mol_925	train	assigned
+mol_926	train	assigned
+mol_927	train	assigned
+mol_928	train	assigned
+mol_929	train	assigned
+mol_930	train	assigned
+mol_931	val	assigned
+mol_932	val	assigned
+mol_933	train	assigned
+mol_934	train	assigned
+mol_935	val	assigned
+mol_936	train	assigned
+mol_937	train	assigned
+mol_938	test	assigned
+mol_939	train	assigned
+mol_940	train	assigned
+mol_941	train	assigned
+mol_942	train	assigned
+mol_943	train	assigned
+mol_944	train	assigned
+mol_945	train	assigned
+mol_946	val	assigned
+mol_947	train	assigned
+mol_948	train	assigned
+mol_949	train	assigned
+mol_950	train	assigned
+mol_951	train	assigned
+mol_952	train	assigned
+mol_953	val	assigned
+mol_954	train	assigned
+mol_955	train	assigned
+mol_956	val	assigned
+mol_957	train	assigned
+mol_958	train	assigned
+mol_959	train	assigned
+mol_960	train	assigned
+mol_961	train	assigned
+mol_962	val	assigned
+mol_963	train	assigned
+mol_964	train	assigned
+mol_965	train	assigned
+mol_966	train	assigned
+mol_967	train	assigned
+mol_968	train	assigned
+mol_969	train	assigned
+mol_970	train	assigned
+mol_971	train	assigned
+mol_972	train	assigned
+mol_973	train	assigned
+mol_974	test	assigned
+mol_975	train	assigned
+mol_976	train	assigned
+mol_977	train	assigned
+mol_978	train	assigned
+mol_979	train	assigned
+mol_980	train	assigned
+mol_981	val	assigned
+mol_982	val	assigned
+mol_983	train	assigned
+mol_984	train	assigned
+mol_985	train	assigned
+mol_986	train	assigned
+mol_987	train	assigned
+mol_988	train	assigned
+mol_989	train	assigned
+mol_990	train	assigned
+mol_991	train	assigned
+mol_992	train	assigned
+mol_993	train	assigned
+mol_994	train	assigned
+mol_995	val	assigned
+mol_996	train	assigned
+mol_997	train	assigned
+mol_998	train	assigned
+mol_999	train	assigned
+mol_1000	train	assigned
+mol_1001	train	assigned
+mol_1002	train	assigned
+mol_1003	train	assigned
+mol_1004	train	assigned
+mol_1005	val	assigned
+mol_1006	train	assigned
+mol_1007	train	assigned
+mol_1008	val	assigned
+mol_1009	train	assigned
+mol_1010	train	assigned
+mol_1011	val	assigned
+mol_1012	train	assigned
+mol_1013	train	assigned
+mol_1014	train	assigned
+mol_1015	train	assigned
+mol_1016	train	assigned
+mol_1017	train	assigned
+mol_1018	train	assigned
+mol_1019	train	assigned
+mol_1020	train	assigned
+mol_1021	train	assigned
+mol_1022	train	assigned
+mol_1023	train	assigned
+mol_1024	train	assigned
+mol_1025	train	assigned
+mol_1026	train	assigned
+mol_1027	train	assigned
+mol_1028	train	assigned
+mol_1029	train	assigned
+mol_1030	train	assigned
+mol_1031	train	assigned
+mol_1032	train	assigned
+mol_1033	val	assigned
+mol_1034	train	assigned
+mol_1035	train	assigned
+mol_1036	train	assigned
+mol_1037	train	assigned
+mol_1038	train	assigned
+mol_1039	train	assigned
+mol_1040	train	assigned
+mol_1041	train	assigned
+mol_1042	train	assigned
+mol_1043	train	assigned
+mol_1044	train	assigned
+mol_1045	val	assigned
+mol_1046	train	assigned
+mol_1047	val	assigned
+mol_1048	train	assigned
+mol_1049	val	assigned
+mol_1050	train	assigned
+mol_1051	train	assigned
+mol_1052	train	assigned
+mol_1053	train	assigned
+mol_1054	train	assigned
+mol_1055	train	assigned
+mol_1056	train	assigned
+mol_1057	train	assigned
+mol_1058	val	assigned
+mol_1059	train	assigned
+mol_1060	train	assigned
+mol_1061	train	assigned
+mol_1062	train	assigned
+mol_1063	train	assigned
+mol_1064	train	assigned
+mol_1065	train	assigned
+mol_1066	train	assigned
+mol_1067	train	assigned
+mol_1068	train	assigned
+mol_1069	train	assigned
+mol_1070	val	assigned
+mol_1071	train	assigned
+mol_1072	val	assigned
+mol_1073	train	assigned
+mol_1074	train	assigned
+mol_1075	train	assigned
+mol_1076	train	assigned
+mol_1077	train	assigned
+mol_1078	train	assigned
+mol_1079	train	assigned
+mol_1080	train	assigned
+mol_1081	train	assigned
+mol_1082	train	assigned
+mol_1083	train	assigned
+mol_1084	val	assigned
+mol_1085	train	assigned
+mol_1086	train	assigned
+mol_1087	train	assigned
+mol_1088	train	assigned
+mol_1089	train	assigned
+mol_1090	val	assigned
+mol_1091	train	assigned
+mol_1092	train	assigned
+mol_1093	train	assigned
+mol_1094	train	assigned
+mol_1095	train	assigned
+mol_1096	train	assigned
+mol_1097	train	assigned
+mol_1098	val	assigned
+mol_1099	val	assigned
+mol_1100	train	assigned
+mol_1101	train	assigned
+mol_1102	train	assigned
+mol_1103	train	assigned
+mol_1104	train	assigned
+mol_1105	train	assigned
+mol_1106	val	assigned
+mol_1107	train	assigned
+mol_1108	train	assigned
+mol_1109	train	assigned
+mol_1110	train	assigned
+mol_1111	val	assigned
+mol_1112	train	assigned
+mol_1113	train	assigned
+mol_1114	train	assigned
+mol_1115	train	assigned
+mol_1116	train	assigned
+mol_1117	train	assigned
+mol_1118	train	assigned
+mol_1119	train	assigned
+mol_1120	train	assigned
+mol_1121	train	assigned
+mol_1122	train	assigned
+mol_1123	train	assigned
+mol_1124	train	assigned
+mol_1125	train	assigned
+mol_1126	train	assigned
+mol_1127	val	assigned
+mol_1128	test	assigned
+mol_1129	train	assigned
+mol_1130	train	assigned
+mol_1131	train	assigned
+mol_1132	val	assigned
+mol_1133	train	assigned
+mol_1134	val	assigned
+mol_1135		assigned
+mol_1136		assigned
+mol_1137		assigned
+mol_1138		assigned
+mol_1139		assigned
+mol_1140		assigned
+mol_1141		assigned
+mol_1142		assigned
+mol_1143		assigned
+mol_1144		assigned
+mol_1145		assigned
+mol_1146		assigned
+mol_1147		assigned
+mol_1148		assigned
+mol_1149		assigned
+mol_1150		assigned
+mol_1151		assigned
+mol_1152		assigned
+mol_1153		assigned
+mol_1154		assigned
+mol_1155		assigned
+mol_1156		assigned
+mol_1157		assigned
+mol_1158		assigned
+mol_1159		assigned
+mol_1160		assigned
+mol_1161		assigned
+mol_1162		assigned
+mol_1163		assigned
+mol_1164		assigned
+mol_1165		assigned
+mol_1166		assigned
+mol_1167		assigned
+mol_1168		assigned
+mol_1169		assigned
+mol_1170		assigned
+mol_1171		assigned
+mol_1172		assigned
+mol_1173		assigned
+mol_1174		assigned
+mol_1175		assigned
+mol_1176		assigned
+mol_1177		assigned
+mol_1178		assigned
+mol_1179		assigned
+mol_1180		assigned
+mol_1181		assigned
+mol_1182		assigned
+mol_1183		assigned
+mol_1184		assigned
+mol_1185		assigned
+mol_1186		assigned
+mol_1187		assigned
+mol_1188		assigned
+mol_1189		assigned
+mol_1190		assigned
+mol_1191		assigned
+mol_1192		assigned
+mol_1193		assigned
+mol_1194		assigned
+mol_1195		assigned
+mol_1196		assigned
+mol_1197		assigned
+mol_1198		assigned
+mol_1199		assigned
+mol_1200		assigned
+mol_1201		assigned
+mol_1202		assigned
+mol_1203		assigned
+mol_1204		assigned
+mol_1205		assigned
+mol_1206		assigned
+mol_1207		assigned
+mol_1208		assigned
+mol_1209		assigned
+mol_1210		assigned
+mol_1211		assigned
+mol_1212		assigned
+mol_1213		assigned
+mol_1214		assigned
+mol_1215		assigned
+mol_1216		assigned
+mol_1217		assigned
+mol_1218		assigned
+mol_1219		assigned
+mol_1220		assigned
+mol_1221		assigned
+mol_1222		assigned
+mol_1223		assigned
+mol_1224		assigned
+mol_1225		assigned
+mol_1226		assigned
+mol_1227		assigned
+mol_1228		assigned
+mol_1229		assigned
+mol_1230		assigned
+mol_1231		assigned
+mol_1232		assigned
+mol_1233		assigned
+mol_1234		assigned
+mol_1235		assigned
+mol_1236		assigned
+mol_1237		assigned
+mol_1238		assigned
+mol_1239		assigned
+mol_1240		assigned
+mol_1241		assigned
+mol_1242		assigned
+mol_1243		assigned
+mol_1244		assigned
+mol_1245		assigned
+mol_1246		assigned
+mol_1247		assigned
+mol_1248		assigned
+mol_1249		assigned
+mol_1250		assigned
+mol_1251		assigned
+mol_1252		assigned
+mol_1253		assigned
+mol_1254		assigned
+mol_1255		assigned
+mol_1256		assigned
+mol_1257		assigned
+mol_1258		assigned
+mol_1259		assigned
+mol_1260		assigned
+mol_1261		assigned
+mol_1262		assigned
+mol_1263		assigned
+mol_1264		assigned
+mol_1265		assigned
+mol_1266		assigned
+mol_1267		assigned
+mol_1268		assigned
+mol_1269		assigned
+mol_1270		assigned
+mol_1271		assigned
+mol_1272		assigned
+mol_1273		assigned
+mol_1274		assigned
+mol_1275		assigned
+mol_1276		assigned
+mol_1277		assigned
+mol_1278		assigned
+mol_1279		assigned
+mol_1280		assigned
+mol_1281		assigned
+mol_1282		assigned
+mol_1283		assigned
+mol_1284		assigned
+mol_1285		assigned
+mol_1286		assigned
+mol_1287		assigned
+mol_1288		assigned
+mol_1289		assigned
+mol_1290		assigned
+mol_1291		assigned
+mol_1292		assigned
+mol_1293		assigned
+mol_1294		assigned
+mol_1295		assigned
+mol_1296		assigned
+mol_1297		assigned
+mol_1298		assigned
+mol_1299		assigned
+mol_1300		assigned
+mol_1301		assigned
+mol_1302		assigned
+mol_1303		assigned
+mol_1304		assigned
+mol_1305		assigned
+mol_1306		assigned
+mol_1307		assigned
+mol_1308		assigned
+mol_1309		assigned
+mol_1310		assigned
+mol_1311		assigned
+mol_1312		assigned
+mol_1313		assigned
+mol_1314		assigned
+mol_1315		assigned
+mol_1316		assigned
+mol_1317		assigned
+mol_1318		assigned
+mol_1319		assigned
+mol_1320		assigned
+mol_1321		assigned
+mol_1322		assigned
+mol_1323		assigned
+mol_1324		assigned
+mol_1325		assigned
+mol_1326		assigned
+mol_1327		assigned
+mol_1328		assigned
+mol_1329		assigned
+mol_1330		assigned
+mol_1331		assigned
+mol_1332		assigned
+mol_1333		assigned
+mol_1334		assigned
+mol_1335		assigned
+mol_1336		assigned
+mol_1337		assigned
+mol_1338		assigned
+mol_1339		assigned
+mol_1340		assigned
+mol_1341		assigned
+mol_1342		assigned
+mol_1343		assigned
+mol_1344		assigned
+mol_1345		assigned
+mol_1346		assigned
+mol_1347		assigned
+mol_1348		assigned
+mol_1349		assigned
+mol_1350		assigned
+mol_1351		assigned
+mol_1352		assigned
+mol_1353		assigned
+mol_1354		assigned
+mol_1355		assigned
+mol_1356		assigned
+mol_1357		assigned
+mol_1358		assigned
+mol_1359		assigned
+mol_1360		assigned
+mol_1361		assigned
+mol_1362		assigned
+mol_1363		assigned
+mol_1364		assigned
+mol_1365		assigned
+mol_1366		assigned
+mol_1367		assigned
+mol_1368		assigned
+mol_1369		assigned
+mol_1370		assigned
+mol_1371		assigned
+mol_1372		assigned
+mol_1373		assigned
+mol_1374		assigned
+mol_1375		assigned
+mol_1376		assigned
+mol_1377		assigned
+mol_1378		assigned
+mol_1379		assigned
+mol_1380		assigned
+mol_1381		assigned
+mol_1382		assigned
+mol_1383		assigned
+mol_1384		assigned
+mol_1385		assigned
+mol_1386		assigned
+mol_1387		assigned
+mol_1388		assigned
+mol_1389		assigned
+mol_1390		assigned
+mol_1391		assigned
+mol_1392		assigned
+mol_1393		assigned
+mol_1394		assigned
+mol_1395		assigned
+mol_1396		assigned
+mol_1397		assigned
+mol_1398		assigned
+mol_1399		assigned
+mol_1400		assigned
+mol_1401		assigned
+mol_1402		assigned
+mol_1403		assigned
+mol_1404		assigned
+mol_1405		assigned
+mol_1406		assigned
+mol_1407		assigned
+mol_1408		assigned
+mol_1409		assigned
+mol_1410		assigned
+mol_1411		assigned
+mol_1412		assigned
+mol_1413		assigned
+mol_1414		assigned
+mol_1415		assigned
+mol_1416		assigned
+mol_1417		assigned
+mol_1418		assigned
+mol_1419		assigned
+mol_1420		assigned
+mol_1421		assigned
+mol_1422		assigned
+mol_1423		assigned
+mol_1424		assigned
+mol_1425		assigned
+mol_1426		assigned
+mol_1427		assigned
+mol_1428		assigned
+mol_1429		assigned
+mol_1430		assigned
+mol_1431		assigned
+mol_1432		assigned
+mol_1433		assigned
+mol_1434		assigned
+mol_1435		assigned
+mol_1436		assigned
+mol_1437		assigned
+mol_1438		assigned
+mol_1439		assigned
+mol_1440		assigned
+mol_1441		assigned
+mol_1442		assigned
+mol_1443		assigned
+mol_1444		assigned
+mol_1445		assigned
+mol_1446		assigned
+mol_1447		assigned
+mol_1448		assigned
+mol_1449		assigned
+mol_1450		assigned
+mol_1451		assigned
+mol_1452		assigned
+mol_1453		assigned
+mol_1454		assigned
+mol_1455		assigned
+mol_1456		assigned
+mol_1457		assigned
+mol_1458		assigned
+mol_1459		assigned
+mol_1460		assigned
+mol_1461		assigned
+mol_1462		assigned
+mol_1463		assigned
+mol_1464		assigned
+mol_1465		assigned
+mol_1466		assigned
+mol_1467		assigned
+mol_1468		assigned
+mol_1469		assigned
+mol_1470		assigned
+mol_1471		assigned
+mol_1472		assigned
+mol_1473		assigned
+mol_1474		assigned
+mol_1475		assigned
+mol_1476		assigned
+mol_1477		assigned
+mol_1478		assigned
+mol_1479		assigned
+mol_1480		assigned
+mol_1481		assigned
+mol_1482		assigned
+mol_1483		assigned
+mol_1484		assigned
+mol_1485		assigned
+mol_1486		assigned
+mol_1487		assigned
+mol_1488		assigned
+mol_1489		assigned
+mol_1490		assigned
+mol_1491		assigned
+mol_1492		assigned
+mol_1493		assigned
+mol_1494		assigned
+mol_1495		assigned
+mol_1496		assigned
+mol_1497		assigned
+mol_1498		assigned
+mol_1499		assigned
+mol_1500		assigned
+mol_1501		assigned
+mol_1502		assigned
+mol_1503		assigned
+mol_1504		assigned
+mol_1505		assigned
+mol_1506		assigned
+mol_1507		assigned
+mol_1508		assigned
+mol_1509		assigned
+mol_1510		assigned
+mol_1511		assigned
+mol_1512		assigned

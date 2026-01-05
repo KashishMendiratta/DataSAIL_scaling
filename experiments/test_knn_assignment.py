@@ -81,7 +81,7 @@ def main():
         print(f"   - Low confidence (<0.5): {metrics['low_confidence_count']}")
     
     print("\n" + "="*70)
-    print("✓ k-NN assignment working!")
+    print("k-NN assignment working!")
     print("="*70)
     print("\nKey findings:")
     print("  - Larger k values generally give higher confidence")

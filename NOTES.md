@@ -1,5 +1,5 @@
 
-## Day 1 Progress - COMPLETED ✓
+## 4th January progress
 
 ### DataSAIL Baseline Established
 - **Dataset:** BACE (1,513 molecules)
@@ -22,7 +22,7 @@
 - Files format: TSV with ID and assignment
 - Function returns: None (writes to disk)
 
-### Next Steps (Day 2)
+### Next Steps
 1. Implement random down-sampling
 2. Run DataSAIL on down-sampled data
 3. Implement kNN assignment for remaining samples

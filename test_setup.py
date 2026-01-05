@@ -37,7 +37,7 @@ print(f"Results: {success_count}/{total_count} packages imported successfully")
 print(f"{'='*50}\n")
 
 if success_count == total_count:
-    print("✓ All packages working! You're ready to start.")
+    print("All packages working! You're ready to start.")
     
     # Show versions
     print("\nPackage versions:")
@@ -54,5 +54,5 @@ if success_count == total_count:
     except:
         pass
 else:
-    print("⚠ Some packages failed to import. See errors above.")
+    print("Some packages failed to import. See errors above.")
     print("Try running: pip install <package-name>")

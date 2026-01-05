@@ -27,8 +27,4 @@ conda activate datasail-scale
 
 TBD
 
-## Timeline
-
-- **Master Seminar Target:** End of February 2025
-- **Thesis Period:** 6 months after seminar
 
