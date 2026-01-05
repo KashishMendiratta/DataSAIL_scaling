@@ -79,9 +79,9 @@ def main():
     assert 'Class' in df.columns, "BACE dataset must contain 'Class' column"
     labels = df['Class']
 
-    print(f"   - Total samples: {len(df)}")
-    print(f"   - Fingerprint shape: {fps.shape}")
-    print(f"   - Class distribution: {dict(labels.value_counts())}")
+    print(f" Total samples: {len(df)}")
+    print(f" Fingerprint shape: {fps.shape}")
+    print(f" Class distribution: {dict(labels.value_counts())}")
 
     # -----------------------------------------------------------------
     # Test different ratios
@@ -99,9 +99,9 @@ def main():
         print("\n1. Random Sampling:")
         sampled, remaining = random_downsample(df, ratio)
 
-        print(f"   - Sampled: {len(sampled)} ({len(sampled) / len(df) * 100:.1f}%)")
-        print(f"   - Remaining: {len(remaining)} ({len(remaining) / len(df) * 100:.1f}%)")
-        print(f"   - Sampled class dist: {dict(sampled['Class'].value_counts())}")
+        print(f" Sampled: {len(sampled)} ({len(sampled) / len(df) * 100:.1f}%)")
+        print(f" Remaining: {len(remaining)} ({len(remaining) / len(df) * 100:.1f}%)")
+        print(f" Sampled class dist: {dict(sampled['Class'].value_counts())}")
 
         # -------------------------------------------------------------
         # 2. Stratified sampling
@@ -109,14 +109,14 @@ def main():
         print("\n2. Stratified Sampling:")
         sampled, remaining = stratified_downsample(df, labels, ratio)
 
-        print(f"   - Sampled: {len(sampled)}")
-        print(f"   - Sampled class dist: {dict(sampled['Class'].value_counts())}")
+        print(f" Sampled: {len(sampled)}")
+        print(f" Sampled class dist: {dict(sampled['Class'].value_counts())}")
 
         orig_props = df['Class'].value_counts(normalize=True)
         samp_props = sampled['Class'].value_counts(normalize=True)
 
-        print(f"   - Original proportions: {dict(orig_props.round(3))}")
-        print(f"   - Sampled proportions:  {dict(samp_props.round(3))}")
+        print(f" Original proportions: {dict(orig_props.round(3))}")
+        print(f" Sampled proportions:  {dict(samp_props.round(3))}")
 
         # Assertion: fail fast if stratification breaks
         assert_stratification_ok(df, sampled)
@@ -132,8 +132,8 @@ def main():
             method="kmeans"
         )
 
-        print(f"   - Sampled: {len(sampled)}")
-        print(f"   - Sampled class dist: {dict(sampled['Class'].value_counts())}")
+        print(f" Sampled: {len(sampled)}")
+        print(f" Sampled class dist: {dict(sampled['Class'].value_counts())}")
 
     # -----------------------------------------------------------------
     # Save a sample for next pipeline steps
@@ -154,8 +154,8 @@ def main():
     sampled.to_csv(sampled_path, index=False)
     remaining.to_csv(remaining_path, index=False)
 
-    print(f"   - Sampled:   {sampled_path}")
-    print(f"   - Remaining: {remaining_path}")
+    print(f" Sampled:   {sampled_path}")
+    print(f" Remaining: {remaining_path}")
 
 
 if __name__ == "__main__":

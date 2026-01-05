@@ -30,20 +30,20 @@ def main():
     smiles_df.to_csv(processed_file, index=False)
     
     print(f"\n1. Dataset prepared")
-    print(f"   - Total molecules: {len(smiles_df)}")
-    print(f"   - Label column: {label_col}")
+    print(f" Total molecules: {len(smiles_df)}")
+    print(f" Label column: {label_col}")
     if label_col in df.columns:
-        print(f"   - Label distribution: {dict(df[label_col].value_counts())}")
+        print(f" Label distribution: {dict(df[label_col].value_counts())}")
     
     # 2. Run DataSAIL
     output_dir = Path("results/splits/bace_baseline")
     output_dir.mkdir(parents=True, exist_ok=True)
     
     print(f"\n2. Running DataSAIL...")
-    print(f"   - Technique: C1e (cluster-based, 1D)")
-    print(f"   - Similarity: ECFP")
-    print(f"   - Clusters: 10")
-    print(f"   - Target splits: 70/20/10")
+    print(f" Technique: C1e (cluster-based, 1D)")
+    print(f" Similarity: ECFP")
+    print(f" Clusters: 10")
+    print(f" Target splits: 70/20/10")
     
     start_time = time.time()
     
@@ -79,8 +79,8 @@ def main():
     
     # Read splits
     splits_df = pd.read_csv(splits_file, sep='\t')
-    print(f"   - Splits file: {splits_file.name}")
-    print(f"   - Columns: {list(splits_df.columns)}")
+    print(f" Splits file: {splits_file.name}")
+    print(f" Columns: {list(splits_df.columns)}")
     
     # Analyse split distribution
     split_counts = Counter(splits_df.iloc[:, 1])  # Second column is split assignment
@@ -98,9 +98,9 @@ def main():
     if clusters_file.exists():
         clusters_df = pd.read_csv(clusters_file, sep='\t')
         print(f"\n5. Cluster analysis:")
-        print(f"   - Number of clusters: {clusters_df.iloc[:, 1].nunique()}")
+        print(f"  Number of clusters: {clusters_df.iloc[:, 1].nunique()}")
         cluster_sizes = clusters_df.iloc[:, 1].value_counts()
-        print(f"   - Cluster sizes: min={cluster_sizes.min()}, max={cluster_sizes.max()}, mean={cluster_sizes.mean():.1f}")
+        print(f"  Cluster sizes: min={cluster_sizes.min()}, max={cluster_sizes.max()}, mean={cluster_sizes.mean():.1f}")
     
     # Check for visualizations
     vis_files = list((output_dir / "C1e").glob("*.png"))

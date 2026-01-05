@@ -53,8 +53,8 @@ def run_pipeline(
     downsample_time = time.time() - start_time
     
     print(f"   Completed in {downsample_time:.2f}s")
-    print(f"   - Sampled: {len(sampled_df)}")
-    print(f"   - Remaining: {len(remaining_df)}")
+    print(f" Sampled: {len(sampled_df)}")
+    print(f" Remaining: {len(remaining_df)}")
     
     # Step 2: Prepare DataSAIL input
     print("\n[2/4] Running DataSAIL on down-sampled data...")
@@ -107,7 +107,7 @@ def run_pipeline(
     sampled_splits = pd.Series(splits_df['Split'].values, index=range(len(sampled_df)))
     
     split_counts = Counter(sampled_splits)
-    print(f"   - Split distribution in down-sampled data:")
+    print(f" Split distribution in down-sampled data:")
     for split in ['train', 'val', 'test']:
         count = split_counts.get(split, 0)
         pct = 100 * count / len(sampled_splits)
@@ -127,9 +127,9 @@ def run_pipeline(
     print(f"   Completed in {assignment_time:.2f}s")
     
     metrics = evaluate_assignment_quality(remaining_assignments, confidences)
-    print(f"   - Assigned: {metrics['total_assigned']}")
-    print(f"   - Mean confidence: {metrics['mean_confidence']:.3f}")
-    print(f"   - Distribution:")
+    print(f"Assigned: {metrics['total_assigned']}")
+    print(f"Mean confidence: {metrics['mean_confidence']:.3f}")
+    print(f"Distribution:")
     for split in ['train', 'val', 'test']:
         count = metrics['split_distribution'].get(split, 0)
         pct = 100 * count / len(remaining_assignments)
@@ -144,7 +144,7 @@ def run_pipeline(
     final_splits.iloc[remaining_indices] = remaining_assignments
     
     final_counts = Counter(final_splits)
-    print(f"   - Final distribution (all {len(df)} samples):")
+    print(f" Final distribution (all {len(df)} samples):")
     for split in ['train', 'val', 'test']:
         count = final_counts.get(split, 0)
         pct = 100 * count / len(df)
@@ -169,9 +169,9 @@ def run_pipeline(
     print("Pipeline Summary")
     print("="*70)
     print(f"Total runtime: {total_time:.2f}s")
-    print(f"  - Down-sampling: {downsample_time:.2f}s")
-    print(f"  - DataSAIL: {datasail_time:.2f}s")
-    print(f"  - kNN assignment: {assignment_time:.2f}s")
+    print(f" Down-sampling: {downsample_time:.2f}s")
+    print(f" DataSAIL: {datasail_time:.2f}s")
+    print(f" kNN assignment: {assignment_time:.2f}s")
     
     return final_splits, total_time
 

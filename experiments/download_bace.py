@@ -17,7 +17,7 @@ print(f"Saving to: {output_file}")
 
 try:
     urllib.request.urlretrieve(url, output_file)
-    print(f"✓ Downloaded successfully!")
+    print(f"Downloaded successfully!")
     
     # Quick check
     import pandas as pd
@@ -29,4 +29,4 @@ try:
         print(f"  Label distribution:\n{df['Class'].value_counts()}")
     
 except Exception as e:
-    print(f"✗ Error downloading: {e}")
+    print(f"Error downloading: {e}")

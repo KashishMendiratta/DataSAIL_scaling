@@ -31,8 +31,8 @@ def main():
     sampled_fps = fps[sampled_indices]
     remaining_fps = fps[remaining_indices]
     
-    print(f"   - Sampled: {len(sampled_df)}")
-    print(f"   - Remaining: {len(remaining_df)}")
+    print(f"Sampled: {len(sampled_df)}")
+    print(f"Remaining: {len(remaining_df)}")
     
     # 3. Create mock split assignments for sampled data
     # (In real pipeline, these come from DataSAIL)
@@ -44,7 +44,7 @@ def main():
     sampled_splits = pd.Series(mock_splits, index=range(len(sampled_df)))
     
     from collections import Counter
-    print(f"   - Mock split distribution: {dict(Counter(mock_splits))}")
+    print(f"Mock split distribution: {dict(Counter(mock_splits))}")
     
     # 4. Test different k values
     k_values = [1, 3, 5, 10]
@@ -60,8 +60,8 @@ def main():
                                 k=k, method='majority')
         
         metrics = evaluate_assignment_quality(assignments)
-        print(f"   - Assigned: {metrics['total_assigned']}")
-        print(f"   - Distribution: {metrics['split_distribution']}")
+        print(f"Assigned: {metrics['total_assigned']}")
+        print(f"Distribution: {metrics['split_distribution']}")
         
         # Calculate proportions
         for split in ['train', 'val', 'test']:
@@ -76,17 +76,17 @@ def main():
         )
         
         metrics = evaluate_assignment_quality(assignments, confidences)
-        print(f"   - Mean confidence: {metrics['mean_confidence']:.3f}")
-        print(f"   - Min confidence: {metrics['min_confidence']:.3f}")
-        print(f"   - Low confidence (<0.5): {metrics['low_confidence_count']}")
+        print(f" Mean confidence: {metrics['mean_confidence']:.3f}")
+        print(f" Min confidence: {metrics['min_confidence']:.3f}")
+        print(f" Low confidence (<0.5): {metrics['low_confidence_count']}")
     
     print("\n" + "="*70)
     print("k-NN assignment working!")
     print("="*70)
     print("\nKey findings:")
-    print("  - Larger k values generally give higher confidence")
-    print("  - Assignment preserves approximate split ratios")
-    print("  - Ready to integrate into full pipeline!")
+    print("Larger k values generally give higher confidence")
+    print("Assignment preserves approximate split ratios")
+    print("Ready to integrate into full pipeline!")
 
 if __name__ == "__main__":
     main()
