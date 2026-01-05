@@ -64,17 +64,17 @@ def main():
     
     runtime = time.time() - start_time
     
-    print(f"\n✓ DataSAIL completed in {runtime:.2f} seconds")
+    print(f"\nDataSAIL completed in {runtime:.2f} seconds")
     
-    # 3. Analyze results
-    print(f"\n3. Analyzing results...")
+    # 3. Analyse results
+    print(f"\n3. Analysing results...")
     
     # Find the splits file
     splits_file = output_dir / "C1e" / f"Molecule_{processed_file.stem}_splits.tsv"
     clusters_file = output_dir / "C1e" / f"Molecule_{processed_file.stem}_clusters.tsv"
     
     if not splits_file.exists():
-        print(f"✗ Could not find splits file: {splits_file}")
+        print(f"Could not find splits file: {splits_file}")
         return
     
     # Read splits
@@ -82,7 +82,7 @@ def main():
     print(f"   - Splits file: {splits_file.name}")
     print(f"   - Columns: {list(splits_df.columns)}")
     
-    # Analyze split distribution
+    # Analyse split distribution
     split_counts = Counter(splits_df.iloc[:, 1])  # Second column is split assignment
     total = len(splits_df)
     
@@ -94,7 +94,7 @@ def main():
         diff = pct - target_pct
         print(f"   - {split_name:5s}: {count:4d} ({pct:5.1f}%) [target: {target_pct}%, diff: {diff:+.1f}%]")
     
-    # Analyze clusters
+    # Analyse clusters
     if clusters_file.exists():
         clusters_df = pd.read_csv(clusters_file, sep='\t')
         print(f"\n5. Cluster analysis:")
@@ -110,11 +110,9 @@ def main():
             print(f"   - {f.name}")
     
     print("\n" + "="*70)
-    print("✓ Baseline established!")
     print("="*70)
     print(f"\nOutput directory: {output_dir}")
     print(f"Key file: {splits_file}")
-    print("\nThis is your ground truth to approximate with down-sampling!")
 
 if __name__ == "__main__":
     main()
