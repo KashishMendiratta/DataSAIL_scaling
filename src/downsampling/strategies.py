@@ -22,16 +22,21 @@ def random_downsample(data: pd.DataFrame, ratio: float, seed: int = 42) -> Tuple
         
     Returns:
         Tuple of (sampled_data, remaining_data)
+        NOTE: Original indices are preserved!
     """
     np.random.seed(seed)
     n_samples = int(len(data) * ratio)
     
-    # Randomly select indices
-    sampled_indices = np.random.choice(len(data), size=n_samples, replace=False)
-    remaining_indices = np.array([i for i in range(len(data)) if i not in sampled_indices])
+    # Get original indices
+    all_indices = data.index.tolist()
     
-    sampled_data = data.iloc[sampled_indices].reset_index(drop=True)
-    remaining_data = data.iloc[remaining_indices].reset_index(drop=True)
+    # Randomly select indices
+    sampled_indices = np.random.choice(all_indices, size=n_samples, replace=False)
+    remaining_indices = [idx for idx in all_indices if idx not in sampled_indices]
+    
+    # Use loc to preserve original indices
+    sampled_data = data.loc[sampled_indices].copy()
+    remaining_data = data.loc[remaining_indices].copy()
     
     return sampled_data, remaining_data
 
@@ -48,24 +53,24 @@ def stratified_downsample(data: pd.DataFrame, labels: pd.Series, ratio: float, s
         
     Returns:
         Tuple of (sampled_data, remaining_data)
+        NOTE: Original indices are preserved!
     """
     np.random.seed(seed)
     
     sampled_indices = []
     for label in labels.unique():
         # Get indices for this class
-        class_indices = np.where(labels == label)[0]
+        class_indices = labels[labels == label].index.tolist()
         n_class_samples = int(len(class_indices) * ratio)
         
         # Sample from this class
         class_sampled = np.random.choice(class_indices, size=n_class_samples, replace=False)
         sampled_indices.extend(class_sampled)
     
-    sampled_indices = np.array(sampled_indices)
-    remaining_indices = np.array([i for i in range(len(data)) if i not in sampled_indices])
+    remaining_indices = [idx for idx in data.index if idx not in sampled_indices]
     
-    sampled_data = data.iloc[sampled_indices].reset_index(drop=True)
-    remaining_data = data.iloc[remaining_indices].reset_index(drop=True)
+    sampled_data = data.loc[sampled_indices].copy()
+    remaining_data = data.loc[remaining_indices].copy()
     
     return sampled_data, remaining_data
 
@@ -87,8 +92,13 @@ def diversity_downsample(fingerprints: np.ndarray, data: pd.DataFrame, ratio: fl
         
     Returns:
         Tuple of (sampled_data, remaining_data)
+        BUG FIX: Original indices are preserved!
     """
     n_samples = int(len(data) * ratio)
+    
+    # Map between array positions and dataframe indices
+    index_to_position = {idx: pos for pos, idx in enumerate(data.index)}
+    position_to_index = {pos: idx for idx, pos in index_to_position.items()}
     
     if method == 'kmeans':
         # Use k-means to find diverse representatives
@@ -96,51 +106,52 @@ def diversity_downsample(fingerprints: np.ndarray, data: pd.DataFrame, ratio: fl
         kmeans.fit(fingerprints)
         
         # Find closest sample to each cluster center
-        sampled_indices = []
+        sampled_positions = []
         for center in kmeans.cluster_centers_:
             distances = euclidean_distances([center], fingerprints)[0]
-            closest_idx = np.argmin(distances)
-            if closest_idx not in sampled_indices:
-                sampled_indices.append(closest_idx)
+            closest_pos = np.argmin(distances)
+            if closest_pos not in sampled_positions:
+                sampled_positions.append(closest_pos)
         
         # If we don't have enough (due to duplicates), add random samples
-        if len(sampled_indices) < n_samples:
-            remaining_pool = [i for i in range(len(data)) if i not in sampled_indices]
-            additional = np.random.choice(remaining_pool, 
-                                         size=n_samples - len(sampled_indices), 
+        if len(sampled_positions) < n_samples:
+            remaining_positions = [p for p in range(len(fingerprints)) if p not in sampled_positions]
+            additional = np.random.choice(remaining_positions, 
+                                         size=n_samples - len(sampled_positions), 
                                          replace=False)
-            sampled_indices.extend(additional)
+            sampled_positions.extend(additional)
     
     elif method == 'maxmin':
         # MaxMin algorithm: iteratively select most diverse samples
-        sampled_indices = []
+        sampled_positions = []
         
         # Start with random sample
         np.random.seed(seed)
-        first_idx = np.random.randint(len(fingerprints))
-        sampled_indices.append(first_idx)
+        first_pos = np.random.randint(len(fingerprints))
+        sampled_positions.append(first_pos)
         
         # Iteratively add most distant sample
         for _ in range(n_samples - 1):
             # Compute minimum distance to already selected samples
-            selected_fps = fingerprints[sampled_indices]
+            selected_fps = fingerprints[sampled_positions]
             min_distances = euclidean_distances(fingerprints, selected_fps).min(axis=1)
             
             # Don't select already sampled points
-            min_distances[sampled_indices] = -1
+            min_distances[sampled_positions] = -1
             
             # Select point with maximum minimum distance
-            next_idx = np.argmax(min_distances)
-            sampled_indices.append(next_idx)
+            next_pos = np.argmax(min_distances)
+            sampled_positions.append(next_pos)
     
     else:
         raise ValueError(f"Unknown diversity method: {method}")
     
-    sampled_indices = np.array(sampled_indices)
-    remaining_indices = np.array([i for i in range(len(data)) if i not in sampled_indices])
+    # Convert positions back to original indices
+    sampled_indices = [position_to_index[pos] for pos in sampled_positions]
+    remaining_indices = [idx for idx in data.index if idx not in sampled_indices]
     
-    sampled_data = data.iloc[sampled_indices].reset_index(drop=True)
-    remaining_data = data.iloc[remaining_indices].reset_index(drop=True)
+    sampled_data = data.loc[sampled_indices].copy()
+    remaining_data = data.loc[remaining_indices].copy()
     
     return sampled_data, remaining_data
 

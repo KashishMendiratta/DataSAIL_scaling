@@ -1,15 +1,7 @@
 """
-
-DEPRECATED / ARCHIVED SCRIPT
-
-This version contains a known split-distribution bug caused by
-kNN majority-vote assignment without stratification guarantees.
-
-Kept for reproducibility and failure analysis (thesis)
-
-See: run_full_pipeline_FIXED.py
+Full pipeline: Down-sample, DataSAIL split, kNN assignment
+VERSION - correctly combines all samples
 """
-
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -51,22 +43,24 @@ def run_pipeline(
     start_time = time.time()
     
     sampled_df, remaining_df = random_downsample(df, downsample_ratio, seed=42)
-    sampled_indices = sampled_df.index.tolist()
-    remaining_indices = remaining_df.index.tolist()
     
-    sampled_fps = fps[sampled_indices]
-    remaining_fps = fps[remaining_indices]
+    # IMPORTANT: Store original indices before reset
+    sampled_original_indices = sampled_df.index.tolist()
+    remaining_original_indices = remaining_df.index.tolist()
+    
+    # Get fingerprints using ORIGINAL indices
+    sampled_fps = fps[sampled_original_indices]
+    remaining_fps = fps[remaining_original_indices]
     
     downsample_time = time.time() - start_time
     
-    print(f"   Completed in {downsample_time:.2f}s")
-    print(f" Sampled: {len(sampled_df)}")
-    print(f" Remaining: {len(remaining_df)}")
+    print(f" Completed in {downsample_time:.2f}s")
+    print(f" Sampled: {len(sampled_df)} (original indices: {len(sampled_original_indices)})")
+    print(f" Remaining: {len(remaining_df)} (original indices: {len(remaining_original_indices)})")
     
     # Step 2: Prepare DataSAIL input
     print("\n[2/4] Running DataSAIL on down-sampled data...")
     
-    # Save sampled data for DataSAIL
     temp_dir = Path("data/temp")
     temp_dir.mkdir(parents=True, exist_ok=True)
     
@@ -110,8 +104,8 @@ def run_pipeline(
     splits_file = datasail_output / "C1e" / f"Molecule_sampled_for_datasail_splits.tsv"
     splits_df = pd.read_csv(splits_file, sep='\t')
     
-    # Map back to original indices
-    sampled_splits = pd.Series(splits_df['Split'].values, index=range(len(sampled_df)))
+    # Map back (splits_df has sequential indices, we need original indices)
+    sampled_splits = pd.Series(splits_df['Split'].values)
     
     split_counts = Counter(sampled_splits)
     print(f" Split distribution in down-sampled data:")
@@ -131,12 +125,12 @@ def run_pipeline(
     
     assignment_time = time.time() - assignment_start
     
-    print(f"   Completed in {assignment_time:.2f}s")
+    print(f" Completed in {assignment_time:.2f}s")
     
     metrics = evaluate_assignment_quality(remaining_assignments, confidences)
-    print(f"Assigned: {metrics['total_assigned']}")
-    print(f"Mean confidence: {metrics['mean_confidence']:.3f}")
-    print(f"Distribution:")
+    print(f" Assigned: {metrics['total_assigned']}")
+    print(f" Mean confidence: {metrics['mean_confidence']:.3f}")
+    print(f" Distribution:")
     for split in ['train', 'val', 'test']:
         count = metrics['split_distribution'].get(split, 0)
         pct = 100 * count / len(remaining_assignments)
@@ -145,13 +139,23 @@ def run_pipeline(
     # Step 5: Combine results
     print("\n[5/5] Combining final splits...")
     
-    # Create final split assignments for all data
+    # Create final split assignments for all data using original indices
     final_splits = pd.Series(index=range(len(df)), dtype=str)
-    final_splits.iloc[sampled_indices] = sampled_splits.values
-    final_splits.iloc[remaining_indices] = remaining_assignments
+    
+    # Assign sampled data using original indices
+    for i, orig_idx in enumerate(sampled_original_indices):
+        final_splits.iloc[orig_idx] = sampled_splits.iloc[i]
+    
+    # Assign remaining data using original indices
+    for i, orig_idx in enumerate(remaining_original_indices):
+        final_splits.iloc[orig_idx] = remaining_assignments[i]
+    
+    # Verify no NaN values
+    if final_splits.isna().any():
+        print(f"   WARNING: {final_splits.isna().sum()} samples have no assignment!")
     
     final_counts = Counter(final_splits)
-    print(f" Final distribution (all {len(df)} samples):")
+    print(f"   - Final distribution (all {len(df)} samples):")
     for split in ['train', 'val', 'test']:
         count = final_counts.get(split, 0)
         pct = 100 * count / len(df)
@@ -164,7 +168,7 @@ def run_pipeline(
     result_df = pd.DataFrame({
         'ID': [f"mol_{i}" for i in range(len(df))],
         'Split': final_splits.values,
-        'Source': ['sampled' if i in sampled_indices else 'assigned' for i in range(len(df))]
+        'Source': ['sampled' if i in sampled_original_indices else 'assigned' for i in range(len(df))]
     })
     result_df.to_csv(results_file, sep='\t', index=False)
     
@@ -176,16 +180,16 @@ def run_pipeline(
     print("Pipeline Summary")
     print("="*70)
     print(f"Total runtime: {total_time:.2f}s")
-    print(f" Down-sampling: {downsample_time:.2f}s")
-    print(f" DataSAIL: {datasail_time:.2f}s")
-    print(f" kNN assignment: {assignment_time:.2f}s")
+    print(f"  - Down-sampling: {downsample_time:.2f}s")
+    print(f"  - DataSAIL: {datasail_time:.2f}s")
+    print(f"  - kNN assignment: {assignment_time:.2f}s")
     
     return final_splits, total_time
 
 
 def main():
     print("="*70)
-    print("FULL PIPELINE TEST")
+    print("FULL PIPELINE TEST - FIXED VERSION")
     print("="*70)
     
     # Load data
@@ -200,7 +204,7 @@ def main():
         {'ratio': 0.10, 'k': 5},
     ]
     
-    results_dir = Path("results/pipeline_tests")
+    results_dir = Path("results/pipeline_tests_fixed")
     results_dir.mkdir(parents=True, exist_ok=True)
     
     for i, config in enumerate(configs, 1):

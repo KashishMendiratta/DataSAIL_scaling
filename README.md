@@ -23,8 +23,14 @@ conda env create -f environment.yml
 conda activate datasail-scale
 ```
 
-## Quick Start
+## Important Note on Pipeline Versions
 
-TBD
+- `run_full_pipeline.py` contains an earlier implementation with
+  a known split-distribution bug and is kept for documentation
+  and failure analysis purposes.
+
+- `run_full_pipeline_FIXED.py` is the corrected pipeline used
+  for all reported experiments.
+
 
 
