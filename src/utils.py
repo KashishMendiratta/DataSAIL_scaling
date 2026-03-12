@@ -2,15 +2,19 @@
 
 from rdkit import Chem
 from rdkit.Chem.rdFingerprintGenerator import GetMorganGenerator
+from rdkit import RDLogger
+
 import numpy as np
 import pandas as pd
+
+from pathlib import Path
 from typing import List, Tuple
 
+RDLogger.DisableLog('rdApp.*')
 
 def smiles_to_fingerprint(
     smiles: str,
-    radius: int = 2,
-    n_bits: int = 2048
+    generator=None
 ) -> np.ndarray | None:
     """
     Convert SMILES string to Morgan (ECFP) fingerprint.
@@ -23,17 +27,16 @@ def smiles_to_fingerprint(
     Returns:
         Numpy array of fingerprint bits, or None if invalid SMILES
     """
+
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         return None
 
     try:
-        gen = GetMorganGenerator(radius=radius, fpSize=n_bits)
-        fp = gen.GetFingerprint(mol)
+        fp = generator.GetFingerprint(mol)
         return np.asarray(fp, dtype=np.int8)
     except Exception:
         return None
-
 
 def compute_fingerprints(
     smiles_list: List[str],
@@ -51,11 +54,13 @@ def compute_fingerprints(
     Returns:
         Tuple of (fingerprints array, valid_indices list)
     """
+    generator = GetMorganGenerator(radius=radius, fpSize=n_bits)
+
     fingerprints = []
     valid_indices = []
 
     for i, smiles in enumerate(smiles_list):
-        fp = smiles_to_fingerprint(smiles, radius, n_bits)
+        fp = smiles_to_fingerprint(smiles, generator)
         if fp is not None:
             fingerprints.append(fp)
             valid_indices.append(i)
@@ -89,3 +94,40 @@ def load_bace_dataset(
     print(f"Loaded {len(df)} molecules with valid SMILES")
 
     return df, fps
+
+
+
+
+def log_experiment(dataset, n_samples, runtime, results):
+    """
+    Save experiment summary for thesis tables.
+    """
+
+    log_file = Path("results/analysis/experiment_summary.csv")
+    log_file.parent.mkdir(parents=True, exist_ok=True)
+
+    row = {
+        "dataset": dataset,
+        "n_samples": n_samples,
+        "runtime_seconds": runtime,
+        "train_pct": results["train"]["pct"],
+        "val_pct": results["val"]["pct"],
+        "test_pct": results["test"]["pct"],
+        "train_diff": results["train"]["diff"],
+        "val_diff": results["val"]["diff"],
+        "test_diff": results["test"]["diff"],
+    }
+
+    if log_file.exists():
+        df = pd.read_csv(log_file)
+
+        # remove previous runs of same dataset
+        df = df[df["dataset"] != dataset]
+
+        df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
+    else:
+        df = pd.DataFrame([row])
+
+    df.to_csv(log_file, index=False)
+
+    print(f"\nExperiment logged → {log_file}")
