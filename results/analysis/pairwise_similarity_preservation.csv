@@ -1,0 +1,9 @@
+dataset,method,full_similarity,subset_similarity,delta_similarity
+bace,random,0.165,0.166,0.001
+bace,stratified,0.165,0.163,0.003
+bbbp,random,0.104,0.104,0.0
+bbbp,stratified,0.104,0.103,0.0
+tox21,random,0.082,0.083,0.0
+tox21,stratified,0.082,0.08,0.002
+hiv,random,0.095,0.095,0.0
+hiv,stratified,0.095,0.094,0.0

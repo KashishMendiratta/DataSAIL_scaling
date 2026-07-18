@@ -1,0 +1,9 @@
+dataset,method,MeanKL,MaxKL
+bace,datasail_scaled_random,0.054216,0.103312
+bace,datasail_scaled_stratified,0.057547,0.119858
+bbbp,datasail_scaled_random,0.009535,0.02192
+bbbp,datasail_scaled_stratified,0.017626,0.033222
+hiv,datasail_scaled_random,0.006122,0.009665
+hiv,datasail_scaled_stratified,0.003646,0.009057
+tox21,datasail_scaled_random,0.020662,0.043574
+tox21,datasail_scaled_stratified,0.006906,0.012841

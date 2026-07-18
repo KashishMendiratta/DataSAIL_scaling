@@ -1,5 +1,5 @@
 """
-Balanced kNN assignment - combines similarity with split size balancing.
+Balanced kNN assignment: combines similarity with split size balancing.
 
 This addresses the majority class bias in naive kNN assignment by
 considering both similarity to neighbors AND current split sizes.

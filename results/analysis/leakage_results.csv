@@ -1,0 +1,16 @@
+dataset,split,mean_train_test_similarity,train_sample_size,test_sample_size
+bace,random,0.167,1059,152
+bace,datasail_full,0.123,1040,150
+bace,datasail_scaled_random,0.107,1025,170
+bace,datasail_scaled_stratified,0.108,1042,163
+bbbp,random,0.104,1426,205
+bbbp,datasail_full,0.101,1460,203
+bbbp,datasail_scaled_random,0.103,1423,207
+bbbp,datasail_scaled_stratified,0.1,1411,202
+tox21,random,0.084,5475,783
+tox21,datasail_full,0.064,5684,704
+tox21,datasail_scaled_random,0.064,5438,798
+tox21,datasail_scaled_stratified,0.061,5467,786
+hiv,random,0.095,28783,4113
+hiv,datasail_scaled_random,0.081,28928,4115
+hiv,datasail_scaled_stratified,0.1,28883,4145

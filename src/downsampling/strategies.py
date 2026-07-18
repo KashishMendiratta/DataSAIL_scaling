@@ -22,7 +22,7 @@ def random_downsample(data: pd.DataFrame, ratio: float, seed: int = 42) -> Tuple
         
     Returns:
         Tuple of (sampled_data, remaining_data)
-        NOTE: Original indices are preserved!
+        Original indices are preserved!
     """
     np.random.seed(seed)
     n_samples = int(len(data) * ratio)
@@ -53,7 +53,7 @@ def stratified_downsample(data: pd.DataFrame, labels: pd.Series, ratio: float, s
         
     Returns:
         Tuple of (sampled_data, remaining_data)
-        NOTE: Original indices are preserved!
+        Original indices are preserved!
     """
     np.random.seed(seed)
     
@@ -92,7 +92,7 @@ def diversity_downsample(fingerprints: np.ndarray, data: pd.DataFrame, ratio: fl
         
     Returns:
         Tuple of (sampled_data, remaining_data)
-        BUG FIX: Original indices are preserved!
+        Original indices are preserved!
     """
     n_samples = int(len(data) * ratio)
     

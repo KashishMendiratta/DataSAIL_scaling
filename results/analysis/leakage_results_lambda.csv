@@ -1,0 +1,11 @@
+dataset,split,mean_train_test_similarity,train_sample_size,test_sample_size
+tox21,datasail_scaled_stratified_lambda_0,0.062,5390,765
+tox21,datasail_scaled_stratified_lambda_0.5,0.061,5443,787
+tox21,datasail_scaled_stratified_lambda_1,0.061,5459,786
+tox21,datasail_scaled_stratified_lambda_2,0.061,5467,786
+tox21,datasail_scaled_stratified_lambda_5,0.062,5472,787
+hiv,datasail_scaled_stratified_lambda_0,0.1,28751,4584
+hiv,datasail_scaled_stratified_lambda_0.5,0.1,28971,4273
+hiv,datasail_scaled_stratified_lambda_1,0.1,28942,4191
+hiv,datasail_scaled_stratified_lambda_2,0.1,28883,4145
+hiv,datasail_scaled_stratified_lambda_5,0.1,28803,4122

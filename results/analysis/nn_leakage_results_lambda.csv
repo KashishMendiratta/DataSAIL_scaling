@@ -1,0 +1,11 @@
+dataset,split,mean_max_similarity,std_max_similarity,leakage_fraction,threshold,train_sample_size,test_sample_size
+tox21,datasail_scaled_stratified_lambda_0,0.389,0.141,0.031,0.7,5390,765
+tox21,datasail_scaled_stratified_lambda_0.5,0.39,0.144,0.037,0.7,5443,787
+tox21,datasail_scaled_stratified_lambda_1,0.391,0.144,0.038,0.7,5459,786
+tox21,datasail_scaled_stratified_lambda_2,0.394,0.148,0.042,0.7,5467,786
+tox21,datasail_scaled_stratified_lambda_5,0.394,0.15,0.043,0.7,5472,787
+hiv,datasail_scaled_stratified_lambda_0,0.533,0.15,0.161,0.7,28751,4584
+hiv,datasail_scaled_stratified_lambda_0.5,0.535,0.151,0.161,0.7,28971,4273
+hiv,datasail_scaled_stratified_lambda_1,0.535,0.151,0.162,0.7,28942,4191
+hiv,datasail_scaled_stratified_lambda_2,0.534,0.151,0.163,0.7,28883,4145
+hiv,datasail_scaled_stratified_lambda_5,0.534,0.152,0.162,0.7,28803,4122

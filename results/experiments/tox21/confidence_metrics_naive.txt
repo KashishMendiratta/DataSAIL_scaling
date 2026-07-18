@@ -1,0 +1,3 @@
+mean_confidence:0.8946830265848671
+min_confidence:0.4
+low_conf_fraction:0.009713701431492843

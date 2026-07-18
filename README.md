@@ -1,49 +1,71 @@
 # Scaling DataSAIL to Large Datasets
 
-Master's thesis project investigating how to scale the DataSAIL dataset splitting algorithm to large molecular datasets (10k–100k+ samples).
-The project explores a pipeline combining:
-- dataset down-sampling
-- DataSAIL cluster-based splitting
-- k-nearest neighbour (kNN) assignment for remaining samples
-- balanced assignment to maintain target split distributions
+Master's thesis project investigating how to scale [DataSAIL](https://doi.org/10.1038/s41467-025-58606-8) — a leakage-aware dataset splitting framework for molecular ML — to large datasets (10k–100k+ samples), where full pairwise similarity computation and ILP optimization become computationally impractical.
+
+The project proposes a hybrid approximation: run DataSAIL on a representative subset of the data, then extend the resulting splits to the remaining samples using a **balance-aware k-nearest-neighbour assignment** strategy.
+
+**Supervised by** Roman Joeres and Prof. Dr. Olga Kalinina, Saarland University / HIPS.
+
+---
+
+## Key Result
+
+Across BACE, BBBP, Tox21, and HIV (MoleculeNet benchmarks), the scaled approximation preserved most of full DataSAIL's leakage-reduction behavior while scaling to datasets where full DataSAIL was computationally impractical:
+
+| Dataset | Full DataSAIL runtime | Scaled DataSAIL runtime | Notes |
+|---|---:|---:|---|
+| BACE (~1.5k) | 3.1s | 5.8s | overhead dominates on small data |
+| BBBP (~2k) | 3.8s | 6.3s | overhead dominates on small data |
+| Tox21 (~8k) | 31.5s | 21.9s | 1.44x speedup |
+| HIV (~41k) | ~1800s (est.) | ~312s | full DataSAIL impractical at this scale |
+
+Leakage fraction (test molecules with a near-duplicate in train, similarity > 0.7) dropped substantially vs. random splitting across all datasets — e.g. for BACE: 84.9% (random) → 7.3% (full DataSAIL) → 1.2–4.1% (scaled). See `report/` for full leakage, split-quality, and downstream ML performance analysis (Accuracy, F1, MCC, ROC-AUC, PR-AUC on Random Forest / Logistic Regression classifiers).
+
+**Balanced kNN assignment was a necessary addition, not an optional refinement**: naive nearest-neighbour propagation caused runaway train-split dominance (up to ±14.5 percentage-point deviation from target ratios on BBBP), since unassigned molecules statistically favor neighbours in the largest existing partition. The balance-aware correction reduced max deviation to ≤0.5pp across all four datasets.
+
+---
 
 ## Project Structure
-```
+```text
 Data-SAIL_scaling/
-
 ├── data/
-│   ├── raw/
-│   │   └── moleculenet/
-│   │       ├── bace.csv
-│   │       ├── bbbp.csv
-│   │       ├── tox21.csv
-│   │       └── hiv.csv
-│   │
-│   ├── sampled/
-│   │   ├── bace_sampled_25pct.csv
-│   │   └── bace_remaining_75pct.csv
-│   │
-│   ├── processed/
-│   │   └── intermediate files
-│   │
-│   └── temp/
-│       └── temporary pipeline files
+│   ├── raw/moleculenet/          # bace.csv, bbbp.csv, tox21.csv, hiv.csv
+│   ├── sampled/                  # downsampled subsets
+│   ├── processed/                # intermediate DataSAIL input files
+│   └── temp/                     # temporary pipeline files
 │
 ├── src/
 │   ├── downsampling/
-│   │   └── strategies.py
-│   │
+│   │   └── strategies.py         # random_downsample, stratified_downsample, diversity_downsample
 │   ├── assignment/
-│   │   ├── knn_assignment.py
-│   │   └── balanced_knn.py
-│   │
-│   └── utils.py
+│   │   ├── knn_assignment.py     # naive kNN assignment (majority/weighted/closest)
+│   │   └── balanced_knn.py       # balanced kNN assignment (similarity x balance_weight)
+│   └── utils.py                  # fingerprints, split saving, deviation metrics
 │
 ├── experiments/
 │   ├── pipelines/
-│   │   ├── run_balanced_pipeline.py
-│   │   ├── run_full_pipeline.py
-│   │   └── run_datasail_baseline.py
+│   │   ├── run_datasail_full.py            # full DataSAIL (reference / baseline)
+│   │   ├── run_random_pipeline.py          # random train/val/test split (baseline)
+│   │   ├── run_datasail_scaled_naive.py    # downsample + naive kNN assignment
+│   │   ├── run_datasail_scaled_random.py   # random downsampling + balanced kNN
+│   │   └── run_datasail_scaled_stratified.py  # stratified downsampling + balanced kNN (proposed method)
+│   │
+│   ├── analysis/
+│   │   ├── run_leakage_evaluation.py              # mean train-test similarity across splits
+│   │   ├── run_nn_leakage.py                      # nearest-neighbour leakage + leakage fraction
+│   │   ├── run_ml_evaluation_extended.py          # downstream ML eval (RF/LogReg): accuracy, F1, MCC, AUC, precision, recall, PR-AUC
+│   │   ├── aggregate_extended_tox21_results.py    # aggregate ML results (mean/std) across Tox21's 12 labels
+│   │   ├── compute_distribution_ratio_error.py    # Distribution Ratio Error (DRE) per split
+│   │   ├── compute_kl_divergence.py               # KL divergence, split vs. original label distribution
+│   │   ├── compute_pairwise_similarity_preservation.py  # structural representativeness of subsets
+│   │   ├── runtime_scaled_vs_datasailfull.py      # runtime + speedup comparison (full vs. scaled)
+│   │   ├── plot_results.py                        # ML performance plots (MCC, AUC vs PR-AUC, etc.)
+│   │   ├── plot_pipeline_analysis.py              # runtime, leakage-vs-runtime, split-quality plots
+│   │   └── archive/                               # earlier iterations, kept for history — not used in final results
+│   │       ├── run_ml_evaluation.py               # superseded by run_ml_evaluation_extended.py
+│   │       ├── aggregate_tox21_results.py         # superseded by aggregate_extended_tox21_results.py
+│   │       ├── distribution_gap_comparison.py     # superseded by compute_distribution_ratio_error.py
+│   │       └── runtime_random_vs_stratified.py    # superseded by runtime_scaled_vs_datasailfull.py
 │   │
 │   ├── dataset_tests/
 │   │   └── test_pipeline_bbbp.py
@@ -63,94 +85,106 @@ Data-SAIL_scaling/
 │       └── verify_split_distributions.py
 │
 ├── results/
-│   ├── experiments/        # final experiment outputs
-│   ├── datasail_outputs/   # raw DataSAIL outputs
-│   ├── pipeline_debug/     # development experiments
-│   ├── analysis/           # figures, tables, models
-│   └── archived/
+│   ├── experiments/<dataset>/    # per-dataset splits, runtime logs, split statistics
+│   └── analysis/                 # aggregated CSVs (leakage, DRE, KL divergence, ML results) + plots/
 │
-├── reports/
-│   └── progress reports and experiment summaries
-│
-├── notebooks/
-│   └── exploratory analysis notebooks
-│
-├── tests/
-│   ├── test_setup.py
-│   └── test_datasail_import.py
-│
+├── report/                       # thesis report (LaTeX/PDF) and seminar slides
 ├── environment.yml
 └── README.md
 ```
 
-## Setup
-Create the conda environment:
+> Scripts under `experiments/analysis/archive/` are earlier drafts superseded by the versions listed above them (either extended with more metrics, or fixed after a stale split-folder naming bug). Kept for development history — use the non-archived versions for reproducing results.
 
+---
+
+## Setup
+
+```bash
 conda env create -f environment.yml
 conda activate datasail-scale
+```
 
-Verify that the setup works:
-
-python tests/test_setup.py
-python tests/test_datasail_import.py
-
-## Pipeline Overview
-
-The scalable pipeline works as follows:
-1. Down-sample the dataset (e.g. 10–25%)
-2. Run DataSAIL on the sampled subset
-3. Compute molecular fingerprints
-4. Assign remaining molecules using kNN
-5. Apply balanced assignment to enforce target split ratios
-
-- Target split distribution:
-  - Train: 70%
-  - Validation: 20%
-  - Test: 10%
+---
 
 ## Running the Pipeline
 
-python experiments/pipelines/run_balanced_pipeline.py
+**Baselines:**
+```bash
+python experiments/pipelines/run_datasail_full.py        # full DataSAIL, per-dataset ILP optimization
+python experiments/pipelines/run_random_pipeline.py      # random split, no leakage awareness
+```
 
-Outputs are saved to:
-results/experiments/
+**Scaled approximation:**
+```bash
+# naive kNN assignment (demonstrates train-split dominance failure mode)
+python experiments/pipelines/run_datasail_scaled_naive.py
 
-## Datasets Used
-Datasets come from MoleculeNet.
-Dataset | Size | Task
-BACE | ~1.5k | binary classification
-BBBP | ~2k | binary classification
-Tox21 | ~8k | multi-task toxicity
-HIV | ~41k | activity prediction
+# balanced kNN assignment, random downsampling
+python experiments/pipelines/run_datasail_scaled_random.py
 
-## Pipeline Versions
-Two pipeline implementations are kept for reproducibility.
-- Original Pipeline
-run_full_pipeline.py
+# balanced kNN assignment, stratified downsampling (proposed method — best results on imbalanced datasets)
+python experiments/pipelines/run_datasail_scaled_stratified.py
+```
 
-Contains an early implementation that produced incorrect split distributions due to an index handling issue.
-This version is preserved for debugging and documentation.
+Each script iterates over `["bace", "bbbp", "tox21", "hiv"]` (with dataset-specific handling — `run_datasail_full.py` currently covers `bace/bbbp/tox21`; HIV requires the scaled approach due to runtime). Outputs — ML-ready splits, runtime logs, split statistics — are saved to `results/experiments/<dataset>/`.
 
-- Balanced Pipeline (Current)
-run_balanced_pipeline.py
+Default parameters: 25% representative subset size, k=5 nearest neighbours, balance_weight (λ) = 2, target split ratios 70/20/10.
 
-Implements:
-- index-safe downsampling
-- kNN assignment
-- split balancing
+---
 
-This is the version used for experiments.
+## Running the Analysis
 
-## Results
+Once splits are generated (`results/experiments/splits/<dataset>/<split_type>/{train,val,test}.csv`), run the evaluation scripts from `experiments/analysis/`:
 
-- Experiment outputs are stored in:
-results/experiments/
+```bash
+# Leakage metrics
+python experiments/analysis/run_leakage_evaluation.py       # mean train-test similarity
+python experiments/analysis/run_nn_leakage.py                # nearest-neighbour leakage + leakage fraction
 
-- Raw DataSAIL outputs are stored in:
-results/datasail_outputs/
+# Split quality
+python experiments/analysis/compute_distribution_ratio_error.py
+python experiments/analysis/compute_kl_divergence.py
+python experiments/analysis/compute_pairwise_similarity_preservation.py
 
-- Development runs are archived in:
-results/pipeline_debug/
+# Downstream ML performance
+python experiments/analysis/run_ml_evaluation_extended.py
+python experiments/analysis/aggregate_extended_tox21_results.py
 
+# Runtime
+python experiments/analysis/runtime_scaled_vs_datasailfull.py
 
+# Plots (run after the above)
+python experiments/analysis/plot_pipeline_analysis.py
+python experiments/analysis/plot_results.py
+```
 
+All outputs are written to `results/analysis/` (CSVs) and `results/analysis/plots/` (figures).
+
+---
+
+## Methodology Summary
+
+1. **Downsample** the dataset (random or stratified, 25% by default) to a representative subset.
+2. **Run DataSAIL** on the subset only — similarity computation and ILP optimization scale quadratically with dataset size, so restricting this step to the subset is what makes the approach tractable.
+3. **Assign remaining molecules** to train/val/test using balanced kNN: for each unassigned molecule, retrieve k nearest neighbours (Jaccard similarity on ECFP/Morgan fingerprints, radius=2, 2048 bits via RDKit), score each candidate split by similarity × balance-correction factor, and assign to the highest-scoring split. The balance factor penalizes already-oversized splits and boosts underrepresented ones, which is what prevents the train-dominance failure seen under naive nearest-neighbour propagation.
+
+Full derivation, complexity analysis (O(k² + (n−k)·K) vs. O(n²) for full DataSAIL), and evaluation framework (leakage metrics, split-quality metrics, downstream ML performance) are in `report/`.
+
+---
+
+## Datasets
+
+From [MoleculeNet](https://doi.org/10.1039/c7sc02664a):
+
+| Dataset | Size | Task |
+|---|---|---|
+| BACE | ~1.5k | binary classification |
+| BBBP | ~2k | binary classification |
+| Tox21 | ~8k | multi-task toxicity |
+| HIV | ~41k | activity prediction |
+
+---
+
+## Status
+
+Preliminary/exploratory results (single run, seed=42) — see `report/` conclusion and future work for planned extensions (larger datasets, dynamic hyperparameter tuning for k, evaluation on D-MPNN models).

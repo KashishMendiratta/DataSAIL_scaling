@@ -1,0 +1,5 @@
+total_runtime_seconds: 6.047332763671875
+load_time: 2.9709060192108154
+downsample_time: 0.006505012512207031
+datasail_time: 2.591419219970703
+assignment_time: 0.2701890468597412

@@ -4,11 +4,22 @@ from rdkit import Chem
 from rdkit.Chem.rdFingerprintGenerator import GetMorganGenerator
 from rdkit import RDLogger
 
+from typing import Dict
 import numpy as np
 import pandas as pd
 
 from pathlib import Path
 from typing import List, Tuple
+
+import os
+
+def save_splits(train_df, val_df, test_df, dataset, split_type):
+    base_dir = f"results/experiments/splits/{dataset}/{split_type}"
+    os.makedirs(base_dir, exist_ok=True)
+
+    train_df.to_csv(f"{base_dir}/train.csv", index=False)
+    val_df.to_csv(f"{base_dir}/val.csv", index=False)
+    test_df.to_csv(f"{base_dir}/test.csv", index=False)
 
 RDLogger.DisableLog('rdApp.*')
 
@@ -131,3 +142,38 @@ def log_experiment(dataset, n_samples, runtime, results):
     df.to_csv(log_file, index=False)
 
     print(f"\nExperiment logged → {log_file}")
+
+def compute_max_deviation(counts: Dict[str, int], total: int, target=(0.7, 0.2, 0.1)) -> float:
+    """
+    Compute max deviation in percentage points.
+    """
+    target_map = {
+        "train": target[0] * 100,
+        "val": target[1] * 100,
+        "test": target[2] * 100
+    }
+
+    deviations = []
+
+    for split in ["train", "val", "test"]:
+        actual_pct = 100 * counts.get(split, 0) / total if total > 0 else 0
+        target_pct = target_map[split]
+        deviations.append(abs(actual_pct - target_pct))
+
+    return max(deviations)
+
+def compute_deviation_details(counts, total, target=(0.7, 0.2, 0.1)):
+    target_map = {
+        "train": target[0] * 100,
+        "val": target[1] * 100,
+        "test": target[2] * 100
+    }
+
+    details = {}
+
+    for split in ["train", "val", "test"]:
+        actual_pct = 100 * counts.get(split, 0) / total
+        target_pct = target_map[split]
+        details[split] = actual_pct - target_pct  # signed deviation
+
+    return details

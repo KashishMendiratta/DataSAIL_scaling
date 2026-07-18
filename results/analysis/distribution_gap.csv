@@ -1,0 +1,9 @@
+dataset,split,mean,max
+bace,datasail_scaled,0.132,0.21
+bace,datasail_scaled_stratified,0.132,0.224
+bbbp,datasail_scaled,0.045,0.08
+bbbp,datasail_scaled_stratified,0.067,0.096
+hiv,datasail_scaled,0.017,0.032
+hiv,datasail_scaled_stratified,0.016,0.031
+tox21,datasail_scaled,0.043,0.087
+tox21,datasail_scaled_stratified,0.018,0.025
