@@ -3,7 +3,7 @@
 [![CI](https://github.com/KashishMendiratta/DataSAIL_scaling/actions/workflows/ci.yml/badge.svg)](https://github.com/KashishMendiratta/DataSAIL_scaling/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 
-Master's thesis project investigating how to scale [DataSAIL](https://doi.org/10.1038/s41467-025-58606-8) — a leakage-aware dataset splitting framework for molecular ML — to large datasets (10k–100k+ samples), where full pairwise similarity computation and ILP optimization become computationally impractical.
+Master's thesis project investigating how to scale [DataSAIL](https://doi.org/10.1038/s41467-025-58606-8) — a general-purpose framework for leakage-aware dataset splitting — to large datasets (10k–100k+ samples), where full pairwise similarity computation and ILP optimization become computationally impractical. This implementation is currently evaluated on four molecular machine-learning benchmarks; generalization to other data modalities has not yet been verified.
 
 The project proposes a hybrid approximation: run DataSAIL on a representative subset of the data, then extend the resulting splits to the remaining samples using a **balance-aware k-nearest-neighbour assignment** strategy.
 
