@@ -6,7 +6,7 @@ before running DataSAIL clustering.
 """
 import numpy as np
 import pandas as pd
-from typing import List, Tuple
+from typing import Tuple
 from sklearn.cluster import KMeans
 from sklearn.metrics.pairwise import euclidean_distances
 
@@ -24,15 +24,19 @@ def random_downsample(data: pd.DataFrame, ratio: float, seed: int = 42) -> Tuple
         Tuple of (sampled_data, remaining_data)
         Original indices are preserved!
     """
-    np.random.seed(seed)
+    if not 0 < ratio <= 1:
+        raise ValueError("ratio must be in the interval (0, 1]")
+
+    rng = np.random.default_rng(seed)
     n_samples = int(len(data) * ratio)
     
     # Get original indices
     all_indices = data.index.tolist()
     
     # Randomly select indices
-    sampled_indices = np.random.choice(all_indices, size=n_samples, replace=False)
-    remaining_indices = [idx for idx in all_indices if idx not in sampled_indices]
+    sampled_indices = rng.choice(all_indices, size=n_samples, replace=False)
+    sampled_index_set = set(sampled_indices)
+    remaining_indices = [idx for idx in all_indices if idx not in sampled_index_set]
     
     # Use loc to preserve original indices
     sampled_data = data.loc[sampled_indices].copy()
@@ -55,7 +59,12 @@ def stratified_downsample(data: pd.DataFrame, labels: pd.Series, ratio: float, s
         Tuple of (sampled_data, remaining_data)
         Original indices are preserved!
     """
-    np.random.seed(seed)
+    if not 0 < ratio <= 1:
+        raise ValueError("ratio must be in the interval (0, 1]")
+    if not data.index.equals(labels.index):
+        raise ValueError("data and labels must have matching indices")
+
+    rng = np.random.default_rng(seed)
     
     sampled_indices = []
     for label in labels.unique():
@@ -64,10 +73,11 @@ def stratified_downsample(data: pd.DataFrame, labels: pd.Series, ratio: float, s
         n_class_samples = int(len(class_indices) * ratio)
         
         # Sample from this class
-        class_sampled = np.random.choice(class_indices, size=n_class_samples, replace=False)
+        class_sampled = rng.choice(class_indices, size=n_class_samples, replace=False)
         sampled_indices.extend(class_sampled)
     
-    remaining_indices = [idx for idx in data.index if idx not in sampled_indices]
+    sampled_index_set = set(sampled_indices)
+    remaining_indices = [idx for idx in data.index if idx not in sampled_index_set]
     
     sampled_data = data.loc[sampled_indices].copy()
     remaining_data = data.loc[remaining_indices].copy()

@@ -1,5 +1,8 @@
 # Scaling DataSAIL to Large Datasets
 
+[![CI](https://github.com/KashishMendiratta/DataSAIL_scaling/actions/workflows/ci.yml/badge.svg)](https://github.com/KashishMendiratta/DataSAIL_scaling/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
+
 Master's thesis project investigating how to scale [DataSAIL](https://doi.org/10.1038/s41467-025-58606-8) — a leakage-aware dataset splitting framework for molecular ML — to large datasets (10k–100k+ samples), where full pairwise similarity computation and ILP optimization become computationally impractical.
 
 The project proposes a hybrid approximation: run DataSAIL on a representative subset of the data, then extend the resulting splits to the remaining samples using a **balance-aware k-nearest-neighbour assignment** strategy.
@@ -17,11 +20,13 @@ Across BACE, BBBP, Tox21, and HIV (MoleculeNet benchmarks), the scaled approxima
 | BACE (~1.5k) | 3.1s | 5.8s | overhead dominates on small data |
 | BBBP (~2k) | 3.8s | 6.3s | overhead dominates on small data |
 | Tox21 (~8k) | 31.5s | 21.9s | 1.44x speedup |
-| HIV (~41k) | ~1800s (est.) | ~312s | full DataSAIL impractical at this scale |
+| HIV (~41k) | ~1800s (est.) | 298.0s | full DataSAIL impractical at this scale |
 
-Leakage fraction (test molecules with a near-duplicate in train, similarity > 0.7) dropped substantially vs. random splitting across all datasets — e.g. for BACE: 84.9% (random) → 7.3% (full DataSAIL) → 1.2–4.1% (scaled). See `report/` for full leakage, split-quality, and downstream ML performance analysis (Accuracy, F1, MCC, ROC-AUC, PR-AUC on Random Forest / Logistic Regression classifiers).
+Leakage fraction (test molecules with a near-duplicate in train, similarity > 0.7) dropped substantially vs. random splitting across all datasets — e.g. for BACE: 84.9% (random) → 7.3% (full DataSAIL) → 1.2–4.1% (scaled). See [`reports/MASTER REPORT.pdf`](reports/MASTER%20REPORT.pdf) for the full leakage, split-quality, and downstream ML performance analysis (Accuracy, F1, MCC, ROC-AUC, and PR-AUC using Random Forest and Logistic Regression classifiers).
 
-**Balanced kNN assignment was a necessary addition, not an optional refinement**: naive nearest-neighbour propagation caused runaway train-split dominance (up to ±14.5 percentage-point deviation from target ratios on BBBP), since unassigned molecules statistically favor neighbours in the largest existing partition. The balance-aware correction reduced max deviation to ≤0.5pp across all four datasets.
+**Balanced kNN assignment was a necessary addition, not an optional refinement**: naive nearest-neighbour propagation caused runaway train-split dominance (up to ±14.5 percentage-point deviation from target ratios on BBBP), since unassigned molecules statistically favor neighbours in the largest existing partition. The balance-aware correction reduced the maximum deviation to approximately 0.5 percentage points or less in the final four-dataset evaluation.
+
+![Runtime comparison between full and scaled DataSAIL](results/analysis/plots/runtime_comparison.png)
 
 ---
 
@@ -88,8 +93,10 @@ Data-SAIL_scaling/
 │   ├── experiments/<dataset>/    # per-dataset splits, runtime logs, split statistics
 │   └── analysis/                 # aggregated CSVs (leakage, DRE, KL divergence, ML results) + plots/
 │
-├── report/                       # thesis report (LaTeX/PDF) and seminar slides
-├── environment.yml
+├── reports/                      # complete project report
+├── tests/                        # deterministic unit tests for core algorithms
+├── environment.yml              # complete research environment
+├── pyproject.toml                # lightweight package and CI dependencies
 └── README.md
 ```
 
@@ -99,9 +106,20 @@ Data-SAIL_scaling/
 
 ## Setup
 
+For the complete research environment:
+
 ```bash
 conda env create -f environment.yml
 conda activate datasail-scale
+```
+
+For the lightweight core package and its tests:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[test]"
+pytest -q
 ```
 
 ---
@@ -168,7 +186,7 @@ All outputs are written to `results/analysis/` (CSVs) and `results/analysis/plot
 2. **Run DataSAIL** on the subset only — similarity computation and ILP optimization scale quadratically with dataset size, so restricting this step to the subset is what makes the approach tractable.
 3. **Assign remaining molecules** to train/val/test using balanced kNN: for each unassigned molecule, retrieve k nearest neighbours (Jaccard similarity on ECFP/Morgan fingerprints, radius=2, 2048 bits via RDKit), score each candidate split by similarity × balance-correction factor, and assign to the highest-scoring split. The balance factor penalizes already-oversized splits and boosts underrepresented ones, which is what prevents the train-dominance failure seen under naive nearest-neighbour propagation.
 
-Full derivation, complexity analysis (O(k² + (n−k)·K) vs. O(n²) for full DataSAIL), and evaluation framework (leakage metrics, split-quality metrics, downstream ML performance) are in `report/`.
+Full derivation, complexity analysis (O(k² + (n−k)·K) vs. O(n²) for full DataSAIL), and evaluation framework (leakage metrics, split-quality metrics, downstream ML performance) are in [`reports/MASTER REPORT.pdf`](reports/MASTER%20REPORT.pdf).
 
 ---
 
@@ -187,4 +205,4 @@ From [MoleculeNet](https://doi.org/10.1039/c7sc02664a):
 
 ## Status
 
-Preliminary/exploratory results (single run, seed=42) — see `report/` conclusion and future work for planned extensions (larger datasets, dynamic hyperparameter tuning for k, evaluation on D-MPNN models).
+Research prototype with preliminary single-run results (`seed=42`). The central scaling result is promising, but it should not be interpreted as a statistically replicated benchmark. See the report's conclusion and future-work section for planned extensions, including repeated runs, larger datasets, dynamic tuning of `k`, and evaluation with D-MPNN models.

@@ -4,11 +4,12 @@ Balanced kNN assignment: combines similarity with split size balancing.
 This addresses the majority class bias in naive kNN assignment by
 considering both similarity to neighbors AND current split sizes.
 """
+from collections import Counter
+from typing import Mapping
+
 import numpy as np
 import pandas as pd
 from sklearn.neighbors import NearestNeighbors
-from collections import Counter
-from typing import Tuple
 
 
 def balanced_knn_assign(
@@ -16,9 +17,9 @@ def balanced_knn_assign(
     train_splits: pd.Series,
     remaining_fps: np.ndarray,
     k: int = 5,
-    target_ratios: dict = None,
-    balance_weight: float = 1.0
-) -> Tuple[np.ndarray, np.ndarray]:
+    target_ratios: Mapping[str, float] | None = None,
+    balance_weight: float = 1.0,
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Assign remaining samples using balanced kNN.
     
@@ -37,7 +38,21 @@ def balanced_knn_assign(
         Tuple of (assignments, confidence_scores)
     """
     if target_ratios is None:
-        target_ratios = {'train': 0.7, 'val': 0.2, 'test': 0.1}
+        target_ratios = {"train": 0.7, "val": 0.2, "test": 0.1}
+
+    if len(train_fps) != len(train_splits):
+        raise ValueError("train_fps and train_splits must have equal lengths")
+    if not 1 <= k <= len(train_fps):
+        raise ValueError("k must be between 1 and the number of reference samples")
+    if balance_weight < 0:
+        raise ValueError("balance_weight must be non-negative")
+    if not target_ratios or any(ratio <= 0 for ratio in target_ratios.values()):
+        raise ValueError("target_ratios must contain positive values")
+    if not np.isclose(sum(target_ratios.values()), 1.0):
+        raise ValueError("target_ratios must sum to 1")
+    unknown_splits = set(train_splits) - set(target_ratios)
+    if unknown_splits:
+        raise ValueError(f"Reference data contains unknown splits: {sorted(unknown_splits)}")
     
     # Fit kNN
     knn = NearestNeighbors(n_neighbors=k, metric='jaccard', n_jobs=-1)

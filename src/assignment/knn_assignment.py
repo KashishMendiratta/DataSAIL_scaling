@@ -8,7 +8,7 @@ based on their similarity to samples in each split.
 import numpy as np
 import pandas as pd
 from sklearn.neighbors import NearestNeighbors
-from typing import Dict, Tuple
+from typing import Dict
 from collections import Counter
 
 
