@@ -3,7 +3,7 @@
 [![CI](https://github.com/KashishMendiratta/DataSAIL_scaling/actions/workflows/ci.yml/badge.svg)](https://github.com/KashishMendiratta/DataSAIL_scaling/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 
-Master's thesis project investigating how to scale [DataSAIL](https://doi.org/10.1038/s41467-025-58606-8) — a general-purpose framework for leakage-aware dataset splitting — to large datasets (10k–100k+ samples), where full pairwise similarity computation and ILP optimization become computationally impractical. This implementation is currently evaluated on four molecular machine-learning benchmarks; generalization to other data modalities has not yet been verified.
+Master's thesis project investigating how to scale [DataSAIL](https://doi.org/10.1038/s41467-025-58606-8), a general-purpose framework for leakage-aware dataset splitting, to large datasets (10k–100k+ samples), where full pairwise similarity computation and ILP optimization become computationally impractical. This implementation is currently evaluated on four molecular machine-learning benchmarks; generalization to other data modalities has not yet been verified.
 
 The project proposes a hybrid approximation: run DataSAIL on a representative subset of the data, then extend the resulting splits to the remaining samples using a **balance-aware k-nearest-neighbour assignment** strategy.
 
@@ -22,7 +22,7 @@ Across BACE, BBBP, Tox21, and HIV (MoleculeNet benchmarks), the scaled approxima
 | Tox21 (~8k) | 31.5s | 21.9s | 1.44x speedup |
 | HIV (~41k) | ~1800s (est.) | 298.0s | full DataSAIL impractical at this scale |
 
-Leakage fraction (test molecules with a near-duplicate in train, similarity > 0.7) dropped substantially vs. random splitting across all datasets — e.g. for BACE: 84.9% (random) → 7.3% (full DataSAIL) → 1.2–4.1% (scaled). See [`reports/MASTER REPORT.pdf`](reports/MASTER%20REPORT.pdf) for the full leakage, split-quality, and downstream ML performance analysis (Accuracy, F1, MCC, ROC-AUC, and PR-AUC using Random Forest and Logistic Regression classifiers).
+Leakage fraction (test molecules with a near-duplicate in train, similarity > 0.7) dropped substantially vs. random splitting across all datasets. For example, BACE dropped from 84.9% (random) → 7.3% (full DataSAIL) → 1.2–4.1% (scaled). See [`reports/MASTER REPORT.pdf`](reports/MASTER%20REPORT.pdf) for the full leakage, split-quality, and downstream ML performance analysis (Accuracy, F1, MCC, ROC-AUC, and PR-AUC using Random Forest and Logistic Regression classifiers).
 
 **Balanced kNN assignment was a necessary addition, not an optional refinement**: naive nearest-neighbour propagation caused runaway train-split dominance (up to ±14.5 percentage-point deviation from target ratios on BBBP), since unassigned molecules statistically favor neighbours in the largest existing partition. The balance-aware correction reduced the maximum deviation to approximately 0.5 percentage points or less in the final four-dataset evaluation.
 
@@ -66,7 +66,7 @@ Data-SAIL_scaling/
 │   │   ├── runtime_scaled_vs_datasailfull.py      # runtime + speedup comparison (full vs. scaled)
 │   │   ├── plot_results.py                        # ML performance plots (MCC, AUC vs PR-AUC, etc.)
 │   │   ├── plot_pipeline_analysis.py              # runtime, leakage-vs-runtime, split-quality plots
-│   │   └── archive/                               # earlier iterations, kept for history — not used in final results
+│   │   └── archive/                               # earlier iterations, kept for history; not used in final results
 │   │       ├── run_ml_evaluation.py               # superseded by run_ml_evaluation_extended.py
 │   │       ├── aggregate_tox21_results.py         # superseded by aggregate_extended_tox21_results.py
 │   │       ├── distribution_gap_comparison.py     # superseded by compute_distribution_ratio_error.py
@@ -100,7 +100,7 @@ Data-SAIL_scaling/
 └── README.md
 ```
 
-> Scripts under `experiments/analysis/archive/` are earlier drafts superseded by the versions listed above them (either extended with more metrics, or fixed after a stale split-folder naming bug). Kept for development history — use the non-archived versions for reproducing results.
+> Scripts under `experiments/analysis/archive/` are earlier drafts superseded by the versions listed above them (either extended with more metrics, or fixed after a stale split-folder naming bug). Kept for development history; use the non-archived versions for reproducing results.
 
 ---
 
@@ -140,11 +140,11 @@ python experiments/pipelines/run_datasail_scaled_naive.py
 # balanced kNN assignment, random downsampling
 python experiments/pipelines/run_datasail_scaled_random.py
 
-# balanced kNN assignment, stratified downsampling (proposed method — best results on imbalanced datasets)
+# balanced kNN assignment, stratified downsampling (proposed method; best results on imbalanced datasets)
 python experiments/pipelines/run_datasail_scaled_stratified.py
 ```
 
-Each script iterates over `["bace", "bbbp", "tox21", "hiv"]` (with dataset-specific handling — `run_datasail_full.py` currently covers `bace/bbbp/tox21`; HIV requires the scaled approach due to runtime). Outputs — ML-ready splits, runtime logs, split statistics — are saved to `results/experiments/<dataset>/`.
+Each script iterates over `["bace", "bbbp", "tox21", "hiv"]` with dataset-specific handling (`run_datasail_full.py` currently covers `bace/bbbp/tox21`; HIV requires the scaled approach due to runtime). Outputs, including ML-ready splits, runtime logs, and split statistics, are saved to `results/experiments/<dataset>/`.
 
 Default parameters: 25% representative subset size, k=5 nearest neighbours, balance_weight (λ) = 2, target split ratios 70/20/10.
 
@@ -183,7 +183,7 @@ All outputs are written to `results/analysis/` (CSVs) and `results/analysis/plot
 ## Methodology Summary
 
 1. **Downsample** the dataset (random or stratified, 25% by default) to a representative subset.
-2. **Run DataSAIL** on the subset only — similarity computation and ILP optimization scale quadratically with dataset size, so restricting this step to the subset is what makes the approach tractable.
+2. **Run DataSAIL** on the subset only. Similarity computation and ILP optimization scale quadratically with dataset size, so restricting this step to the subset is what makes the approach tractable.
 3. **Assign remaining molecules** to train/val/test using balanced kNN: for each unassigned molecule, retrieve k nearest neighbours (Jaccard similarity on ECFP/Morgan fingerprints, radius=2, 2048 bits via RDKit), score each candidate split by similarity × balance-correction factor, and assign to the highest-scoring split. The balance factor penalizes already-oversized splits and boosts underrepresented ones, which is what prevents the train-dominance failure seen under naive nearest-neighbour propagation.
 
 Full derivation, complexity analysis (O(k² + (n−k)·K) vs. O(n²) for full DataSAIL), and evaluation framework (leakage metrics, split-quality metrics, downstream ML performance) are in [`reports/MASTER REPORT.pdf`](reports/MASTER%20REPORT.pdf).
