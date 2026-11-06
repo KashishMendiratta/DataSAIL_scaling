@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import time
 from pathlib import Path
 
@@ -193,7 +194,9 @@ def evaluate_muv(split_type: str, train: pd.DataFrame, test: pd.DataFrame,
 
 def split_directory(dataset: str, split_type: str) -> Path:
     """Resolve configured scaled splits and shared legacy baseline/full splits."""
-    return ROOT / "results/experiments/unified/splits" / dataset / split_type
+    path = ROOT / "results/experiments/unified/splits" / dataset / split_type
+    run_id = os.environ.get("DATASAIL_RUN_ID", "").strip()
+    return path / run_id if run_id else path
 
 
 def run(dataset: str, split_types: list[str], n_jobs: int, seed: int) -> pd.DataFrame:
@@ -228,7 +231,9 @@ def run(dataset: str, split_types: list[str], n_jobs: int, seed: int) -> pd.Data
     results = pd.DataFrame(records)
     outdir = ROOT / "results/analysis/unified"
     outdir.mkdir(parents=True, exist_ok=True)
-    output = outdir / f"{dataset}_predictive_metrics.csv"
+    run_id = os.environ.get("DATASAIL_RUN_ID", "").strip()
+    suffix = f"_{run_id}" if run_id else ""
+    output = outdir / f"{dataset}_predictive_metrics{suffix}.csv"
     results.to_csv(output, index=False)
     metadata = {
         "dataset": dataset, "split_types": split_types, "seed": seed,
@@ -238,7 +243,7 @@ def run(dataset: str, split_types: list[str], n_jobs: int, seed: int) -> pd.Data
                    "molecular regression": "per-target Ridge(alpha=1.0, solver=lsqr)"},
         "output": str(output.relative_to(ROOT)), "n_result_rows": len(results),
     }
-    (outdir / f"{dataset}_predictive_metrics_metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
+    (outdir / f"{dataset}_predictive_metrics{suffix}_metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
     print(results.groupby(["split_type", "status"], dropna=False).size().to_string(), flush=True)
     print(f"Saved predictive metrics to {output}", flush=True)
     return results

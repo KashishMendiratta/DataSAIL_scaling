@@ -1,6 +1,6 @@
 """Compare recorded end-to-end and DataSAIL-stage runtimes across datasets."""
 from __future__ import annotations
-import argparse,json
+import argparse,json,os
 from pathlib import Path
 import pandas as pd
 import sys
@@ -24,5 +24,6 @@ def main():
     'runtime_scope':meta.get('runtime_scope'),'source_sha256':meta.get('source_sha256'),
     'git_commit':meta.get('git_commit'),'git_worktree_dirty':meta.get('git_worktree_dirty'),
     'metadata_path':str(meta_path.relative_to(ROOT)) if meta else ''})
- out=ANALYSIS_DIR/'runtime_comparison.csv';out.parent.mkdir(parents=True,exist_ok=True);pd.DataFrame(rows).to_csv(out,index=False);print(f'Saved {out}')
+ run_id=os.environ.get('DATASAIL_RUN_ID','').strip();suffix=f'_{run_id}' if run_id else ''
+ out=ANALYSIS_DIR/f'runtime_comparison{suffix}.csv';out.parent.mkdir(parents=True,exist_ok=True);pd.DataFrame(rows).to_csv(out,index=False);print(f'Saved {out}')
 if __name__=='__main__':main()

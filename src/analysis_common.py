@@ -1,6 +1,7 @@
 """Shared dataset, split, fingerprint, and distribution helpers for analyses."""
 from __future__ import annotations
 import json
+import os
 from pathlib import Path
 import sys
 import numpy as np
@@ -13,10 +14,13 @@ from src.pipeline_engine import CONFIG, load_dataset
 METHODS=['random','datasail_scaled_random','datasail_scaled_stratified','datasail_full']
 ANALYSIS_DIR=ROOT/'results/analysis/unified'
 
-def split_dir(dataset,method): return ROOT/'results/experiments/unified/splits'/dataset/method
+def split_dir(dataset, method, run_id=None):
+    path = ROOT / 'results/experiments/unified/splits' / dataset / method
+    run_id = run_id if run_id is not None else os.environ.get('DATASAIL_RUN_ID', '').strip()
+    return path / run_id if run_id else path
 
-def read_splits(dataset,method):
-    folder=split_dir(dataset,method)
+def read_splits(dataset, method, run_id=None):
+    folder=split_dir(dataset, method, run_id)
     paths={s:folder/f'{s}.csv' for s in ('train','val','test')}
     if not all(p.exists() for p in paths.values()): return None
     return {s:pd.read_csv(p) for s,p in paths.items()}

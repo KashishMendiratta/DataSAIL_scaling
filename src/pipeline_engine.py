@@ -5,7 +5,7 @@ strategies are random anchor sampling and label-stratified anchor sampling; both
 use DataSAIL for anchor splits and balanced kNN for assigning the remaining rows.
 """
 from __future__ import annotations
-import argparse, hashlib, importlib.metadata, json, platform, subprocess, sys, time
+import argparse, hashlib, importlib.metadata, json, os, platform, subprocess, sys, time
 from collections import Counter
 from pathlib import Path
 import numpy as np
@@ -19,6 +19,19 @@ CONFIG_PATH = ROOT / 'experiments/config/datasets.json'
 SPLIT_ROOT = ROOT / 'results/experiments/unified/splits'
 DATASAIL_ROOT = ROOT / 'results/experiments/unified/datasail'
 CONFIG = json.loads(CONFIG_PATH.read_text())
+
+def _run_id():
+    return os.environ.get('DATASAIL_RUN_ID', '').strip()
+
+def _result_dir(root, dataset, method):
+    path = root / dataset / method
+    run_id = _run_id()
+    return path / run_id if run_id else path
+
+def _ensure_fresh_run(path):
+    if _run_id() and path.exists():
+        raise FileExistsError(f'Run output already exists: {path}; choose a new DATASAIL_RUN_ID')
+
 RDLogger.DisableLog('rdApp.*')
 sys.path.insert(0, str(ROOT))
 
@@ -111,6 +124,8 @@ def run(name, strategy, sample_ratio=None, seed=None, k=None, n_jobs=1, dry_run=
     seed = defaults['seed'] if seed is None else seed
     k = defaults['assignment']['k'] if k is None else k
     ratios = defaults['split_ratios']; split_names = list(ratios)
+    split_root = _result_dir(SPLIT_ROOT, name, f'datasail_scaled_{strategy}')
+    _ensure_fresh_run(split_root)
     frame, n_input, invalid = load_dataset(name)
     anchors = choose_anchors(frame, spec, sample_ratio, strategy, seed)
     print(f'{name}: input={n_input}, valid={len(frame)}, invalid={len(invalid)}, anchors={len(anchors)}, strategy={strategy}')
@@ -119,10 +134,12 @@ def run(name, strategy, sample_ratio=None, seed=None, k=None, n_jobs=1, dry_run=
     fps = fingerprint_matrix(frame, CONFIG, n_jobs)
     id_col = '_datasail_id'; smiles_col = '_datasail_smiles'
     sampled = frame.iloc[anchors]
-    ds_input = ROOT / 'data/temp' / f'{name}_{strategy}_anchors.csv'
+    run_suffix = f'_{_run_id()}' if _run_id() else ''
+    ds_input = ROOT / 'data/temp' / f'{name}_{strategy}_anchors{run_suffix}.csv'
     ds_input.parent.mkdir(parents=True, exist_ok=True)
     sampled[[id_col,smiles_col]].rename(columns={id_col:'id',smiles_col:'smiles'}).to_csv(ds_input,index=False)
-    out = DATASAIL_ROOT / name / f'datasail_scaled_{strategy}'
+    out = _result_dir(DATASAIL_ROOT, name, f'datasail_scaled_{strategy}')
+    _ensure_fresh_run(out)
     out.mkdir(parents=True,exist_ok=True)
     from datasail.sail import sail
     start_ds=time.perf_counter()
@@ -146,7 +163,6 @@ def run(name, strategy, sample_ratio=None, seed=None, k=None, n_jobs=1, dry_run=
     verify_assignments(frame,labels,split_names)
     output_frame=frame.drop(columns=['_datasail_smiles','_datasail_id']).copy()
     output_frame['split']=labels
-    split_root=SPLIT_ROOT/name/f'datasail_scaled_{strategy}'
     split_root.mkdir(parents=True,exist_ok=True)
     for split in split_names: output_frame.loc[output_frame.split==split].drop(columns='split').to_csv(split_root/f'{split}.csv',index=False)
     source=ROOT/spec['path']; digest=hashlib.sha256(source.read_bytes()).hexdigest()
@@ -155,7 +171,7 @@ def run(name, strategy, sample_ratio=None, seed=None, k=None, n_jobs=1, dry_run=
         dirty=bool(subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).strip())
     except Exception: commit,dirty=None,None
     total_seconds=time.perf_counter()-run_started
-    meta={'dataset':name,'method':f'datasail_scaled_{strategy}','strategy':strategy,'source_path':spec['path'],'source_sha256':digest,
+    meta={'dataset':name,'method':f'datasail_scaled_{strategy}','run_id':_run_id() or None,'strategy':strategy,'source_path':spec['path'],'source_sha256':digest,
           'id_column':spec.get('id_column'),'smiles_column':spec['smiles_column'],'target_columns':spec.get('target_columns'),
           'task_type':spec['task_type'],'split_ratios':ratios,'sample_ratio':sample_ratio,'seed':seed,'k':k,
           'fingerprint':defaults['fingerprint'],'assignment':defaults['assignment'],'n_input_rows':n_input,
@@ -178,12 +194,13 @@ def _save_result(name, method, frame, labels, metadata):
     verify_assignments(frame, labels, split_names)
     output = frame.drop(columns=['_datasail_smiles','_datasail_id']).copy()
     output['split'] = labels
-    root = SPLIT_ROOT / name / method
+    root = _result_dir(SPLIT_ROOT, name, method)
+    _ensure_fresh_run(root)
     root.mkdir(parents=True, exist_ok=True)
     for split in split_names:
         output.loc[output.split == split].drop(columns='split').to_csv(root / f'{split}.csv', index=False)
     source = ROOT / CONFIG['datasets'][name]['path']
-    base = {'dataset':name,'method':method,'source_sha256':hashlib.sha256(source.read_bytes()).hexdigest(),
+    base = {'dataset':name,'method':method,'run_id':_run_id() or None,'source_sha256':hashlib.sha256(source.read_bytes()).hexdigest(),
             'source_path':CONFIG['datasets'][name]['path'],'n_input_rows':metadata.pop('n_input_rows'),
             'n_valid_rows':len(frame),'n_invalid_smiles':metadata.pop('n_invalid_smiles'),
             'invalid_ids':metadata.pop('invalid_ids'),'split_ratios':CONFIG['defaults']['split_ratios'],
@@ -220,9 +237,10 @@ def run_full(name, seed=42, n_jobs=1, max_sec=43200, e_clusters=10):
     """Run DataSAIL on every valid row; resource failures remain dataset-specific."""
     started=time.perf_counter(); frame,n_input,invalid=load_dataset(name)
     id_col,smiles_col='_datasail_id','_datasail_smiles'
-    input_path=ROOT/'data/temp'/f'{name}_full_datasail.csv'; input_path.parent.mkdir(parents=True,exist_ok=True)
+    run_suffix = f'_{_run_id()}' if _run_id() else ''
+    input_path=ROOT/'data/temp'/f'{name}_full_datasail{run_suffix}.csv'; input_path.parent.mkdir(parents=True,exist_ok=True)
     frame[[id_col,smiles_col]].rename(columns={id_col:'id',smiles_col:'smiles'}).to_csv(input_path,index=False)
-    output=DATASAIL_ROOT/name/'datasail_full'; output.mkdir(parents=True,exist_ok=True)
+    output=_result_dir(DATASAIL_ROOT,name,'datasail_full'); _ensure_fresh_run(output); output.mkdir(parents=True,exist_ok=True)
     from datasail.sail import sail
     t0=time.perf_counter()
     sail(e_type='M',e_data=str(input_path),techniques=['C1e'],e_sim='ecfp',e_clusters=e_clusters,
