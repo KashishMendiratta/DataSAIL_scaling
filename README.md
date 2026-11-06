@@ -1,190 +1,126 @@
-# Scaling DataSAIL to Large Datasets
+# Scaling DataSAIL for molecular datasets
 
-Master's thesis project investigating how to scale [DataSAIL](https://doi.org/10.1038/s41467-025-58606-8) — a leakage-aware dataset splitting framework for molecular ML — to large datasets (10k–100k+ samples), where full pairwise similarity computation and ILP optimization become computationally impractical.
+This repository contains the implementation and experiments for scaling DataSAIL to larger molecular datasets. The scaled method runs DataSAIL on an anchor subset, then assigns the remaining molecules using Morgan fingerprints and balanced k-nearest-neighbor assignment. The experiments compare this approach with random splitting and full DataSAIL.
 
-The project proposes a hybrid approximation: run DataSAIL on a representative subset of the data, then extend the resulting splits to the remaining samples using a **balance-aware k-nearest-neighbour assignment** strategy.
+The thesis report is [`reports/MASTER REPORT.pdf`](reports/MASTER%20REPORT.pdf). Results produced after that report are extensions; they do not retroactively change the report's original claims.
 
-**Supervised by** Roman Joeres and Prof. Dr. Olga Kalinina, Saarland University / HIPS.
+## Current workflow
 
----
+The active pipelines are:
 
-## Key Result
+| Script | Purpose |
+|---|---|
+| `experiments/pipelines/random_pipeline.py` | Shuffle valid molecules and divide them into train, validation, and test sets. |
+| `experiments/pipelines/dataSAIL_scaled_random.py` | Select anchors randomly, split anchors with DataSAIL, then assign the remaining molecules with balanced kNN. |
+| `experiments/pipelines/dataSAIL_scaled_stratified.py` | Select anchors while preserving the configured target strata, then use the same DataSAIL and balanced-kNN steps. |
+| `experiments/pipelines/full_dataSAIL.py` | Run DataSAIL on all valid molecules. This requires HPC resources for larger datasets. |
 
-Across BACE, BBBP, Tox21, and HIV (MoleculeNet benchmarks), the scaled approximation preserved most of full DataSAIL's leakage-reduction behavior while scaling to datasets where full DataSAIL was computationally impractical:
+All four pipelines use the shared dataset registry and defaults in `experiments/config/datasets.json`. The default split proportions are 70% train, 20% validation, and 10% test. The default seed is 42; scaled anchor fractions are specified per dataset; the default fingerprint is Morgan radius 2 with 2048 bits; and the default balanced-kNN uses `k=5` and balance weight 2.0. These are configurable, not universal constants.
 
-| Dataset | Full DataSAIL runtime | Scaled DataSAIL runtime | Notes |
-|---|---:|---:|---|
-| BACE (~1.5k) | 3.1s | 5.8s | overhead dominates on small data |
-| BBBP (~2k) | 3.8s | 6.3s | overhead dominates on small data |
-| Tox21 (~8k) | 31.5s | 21.9s | 1.44x speedup |
-| HIV (~41k) | ~1800s (est.) | ~312s | full DataSAIL impractical at this scale |
+For classification, stratified anchor selection uses the configured stratification label. For regression, it bins the configured target into quantiles. Stratification applies to anchor selection; it does not guarantee that every final split exactly matches the source target distribution.
 
-Leakage fraction (test molecules with a near-duplicate in train, similarity > 0.7) dropped substantially vs. random splitting across all datasets — e.g. for BACE: 84.9% (random) → 7.3% (full DataSAIL) → 1.2–4.1% (scaled). See `report/` for full leakage, split-quality, and downstream ML performance analysis (Accuracy, F1, MCC, ROC-AUC, PR-AUC on Random Forest / Logistic Regression classifiers).
+## Environment and data
 
-**Balanced kNN assignment was a necessary addition, not an optional refinement**: naive nearest-neighbour propagation caused runaway train-split dominance (up to ±14.5 percentage-point deviation from target ratios on BBBP), since unassigned molecules statistically favor neighbours in the largest existing partition. The balance-aware correction reduced max deviation to ≤0.5pp across all four datasets.
-
----
-
-## Project Structure
-```text
-Data-SAIL_scaling/
-├── data/
-│   ├── raw/moleculenet/          # bace.csv, bbbp.csv, tox21.csv, hiv.csv
-│   ├── sampled/                  # downsampled subsets
-│   ├── processed/                # intermediate DataSAIL input files
-│   └── temp/                     # temporary pipeline files
-│
-├── src/
-│   ├── downsampling/
-│   │   └── strategies.py         # random_downsample, stratified_downsample, diversity_downsample
-│   ├── assignment/
-│   │   ├── knn_assignment.py     # naive kNN assignment (majority/weighted/closest)
-│   │   └── balanced_knn.py       # balanced kNN assignment (similarity x balance_weight)
-│   └── utils.py                  # fingerprints, split saving, deviation metrics
-│
-├── experiments/
-│   ├── pipelines/
-│   │   ├── run_datasail_full.py            # full DataSAIL (reference / baseline)
-│   │   ├── run_random_pipeline.py          # random train/val/test split (baseline)
-│   │   ├── run_datasail_scaled_naive.py    # downsample + naive kNN assignment
-│   │   ├── run_datasail_scaled_random.py   # random downsampling + balanced kNN
-│   │   └── run_datasail_scaled_stratified.py  # stratified downsampling + balanced kNN (proposed method)
-│   │
-│   ├── analysis/
-│   │   ├── run_leakage_evaluation.py              # mean train-test similarity across splits
-│   │   ├── run_nn_leakage.py                      # nearest-neighbour leakage + leakage fraction
-│   │   ├── run_ml_evaluation_extended.py          # downstream ML eval (RF/LogReg): accuracy, F1, MCC, AUC, precision, recall, PR-AUC
-│   │   ├── aggregate_extended_tox21_results.py    # aggregate ML results (mean/std) across Tox21's 12 labels
-│   │   ├── compute_distribution_ratio_error.py    # Distribution Ratio Error (DRE) per split
-│   │   ├── compute_kl_divergence.py               # KL divergence, split vs. original label distribution
-│   │   ├── compute_pairwise_similarity_preservation.py  # structural representativeness of subsets
-│   │   ├── runtime_scaled_vs_datasailfull.py      # runtime + speedup comparison (full vs. scaled)
-│   │   ├── plot_results.py                        # ML performance plots (MCC, AUC vs PR-AUC, etc.)
-│   │   ├── plot_pipeline_analysis.py              # runtime, leakage-vs-runtime, split-quality plots
-│   │   └── archive/                               # earlier iterations, kept for history — not used in final results
-│   │       ├── run_ml_evaluation.py               # superseded by run_ml_evaluation_extended.py
-│   │       ├── aggregate_tox21_results.py         # superseded by aggregate_extended_tox21_results.py
-│   │       ├── distribution_gap_comparison.py     # superseded by compute_distribution_ratio_error.py
-│   │       └── runtime_random_vs_stratified.py    # superseded by runtime_scaled_vs_datasailfull.py
-│   │
-│   ├── dataset_tests/
-│   │   └── test_pipeline_bbbp.py
-│   │
-│   ├── dataset_download/
-│   │   ├── download_bace.py
-│   │   ├── download_bbbp.py
-│   │   ├── download_more_datasets.py
-│   │   └── download_tox21_fix.py
-│   │
-│   ├── algorithm_tests/
-│   │   ├── test_downsampling.py
-│   │   ├── test_knn_assignment.py
-│   │   └── test_balanced_assignment.py
-│   │
-│   └── utils/
-│       └── verify_split_distributions.py
-│
-├── results/
-│   ├── experiments/<dataset>/    # per-dataset splits, runtime logs, split statistics
-│   └── analysis/                 # aggregated CSVs (leakage, DRE, KL divergence, ML results) + plots/
-│
-├── report/                       # thesis report (LaTeX/PDF) and seminar slides
-├── environment.yml
-└── README.md
-```
-
-> Scripts under `experiments/analysis/archive/` are earlier drafts superseded by the versions listed above them (either extended with more metrics, or fixed after a stale split-folder naming bug). Kept for development history — use the non-archived versions for reproducing results.
-
----
-
-## Setup
+Create the Conda environment from the repository root:
 
 ```bash
 conda env create -f environment.yml
 conda activate datasail-scale
 ```
 
----
+The registry currently includes BACE, BBBP, Tox21, HIV, QM9, PCBA, MUV, ESOL, FreeSolv, and Lipophilicity. Dataset paths, columns, task types, and anchor fractions are defined in `experiments/config/datasets.json`.
 
-## Running the Pipeline
+Downloaders are in `experiments/dataset_download/`. For example:
 
-**Baselines:**
 ```bash
-python experiments/pipelines/run_datasail_full.py        # full DataSAIL, per-dataset ILP optimization
-python experiments/pipelines/run_random_pipeline.py      # random split, no leakage awareness
+python experiments/dataset_download/download_qm9.py
+python experiments/dataset_download/download_pcba.py
+python experiments/dataset_download/download_muv.py
+python experiments/dataset_download/download_esol.py
+python experiments/dataset_download/download_freesolv.py
+python experiments/dataset_download/download_lipophilicity.py
 ```
 
-**Scaled approximation:**
+The original MoleculeNet CSVs belong under `data/raw/moleculenet/`. They are local inputs and are not included in Git. Check that every configured input file exists before starting a pipeline.
+
+## Run pipelines
+
+Run commands from the repository root. Each pipeline accepts one or more dataset names. To keep execution sequential and limit parallel CPU work on a modest machine, run one dataset at a time and set `--n-jobs 1` for the scaled and full pipelines:
+
 ```bash
-# naive kNN assignment (demonstrates train-split dominance failure mode)
-python experiments/pipelines/run_datasail_scaled_naive.py
+set -e
+DATASETS="bace bbbp tox21 hiv qm9 pcba muv esol freesolv lipophilicity"
 
-# balanced kNN assignment, random downsampling
-python experiments/pipelines/run_datasail_scaled_random.py
+for dataset in $DATASETS; do
+  python experiments/pipelines/random_pipeline.py "$dataset"
+done
 
-# balanced kNN assignment, stratified downsampling (proposed method — best results on imbalanced datasets)
-python experiments/pipelines/run_datasail_scaled_stratified.py
+for dataset in $DATASETS; do
+  python experiments/pipelines/dataSAIL_scaled_random.py "$dataset" --n-jobs 1
+done
+
+for dataset in $DATASETS; do
+  python experiments/pipelines/dataSAIL_scaled_stratified.py "$dataset" --n-jobs 1
+done
 ```
 
-Each script iterates over `["bace", "bbbp", "tox21", "hiv"]` (with dataset-specific handling — `run_datasail_full.py` currently covers `bace/bbbp/tox21`; HIV requires the scaled approach due to runtime). Outputs — ML-ready splits, runtime logs, split statistics — are saved to `results/experiments/<dataset>/`.
+`set -e` stops the shell sequence on the first failed command. It does not alter pipeline behavior. `--n-jobs` limits the number of worker threads used by supported fingerprinting, DataSAIL, and nearest-neighbor operations; one job reduces concurrent work but does not remove the memory cost of holding dataset and fingerprint arrays. PCBA is especially demanding. Start with smaller datasets and monitor memory before attempting it locally.
 
-Default parameters: 25% representative subset size, k=5 nearest neighbours, balance_weight (λ) = 2, target split ratios 70/20/10.
-
----
-
-## Running the Analysis
-
-Once splits are generated (`results/experiments/splits/<dataset>/<split_type>/{train,val,test}.csv`), run the evaluation scripts from `experiments/analysis/`:
+Run full DataSAIL only for datasets and machines with suitable resources. A single invocation can process multiple datasets sequentially:
 
 ```bash
-# Leakage metrics
-python experiments/analysis/run_leakage_evaluation.py       # mean train-test similarity
-python experiments/analysis/run_nn_leakage.py                # nearest-neighbour leakage + leakage fraction
+python experiments/pipelines/full_dataSAIL.py bace --n-jobs 1
+```
 
-# Split quality
+The full pipeline has a default 12-hour DataSAIL time limit; adjust `--max-sec` only when appropriate for the machine or scheduler. A timeout or resource failure is a run status to record.
+
+## Run analyses
+
+After the split files exist, run the seven current analyses from the repository root:
+
+```bash
+python experiments/analysis/runtime_comparision.py
+python experiments/analysis/leakage_analaysis.py --n-jobs 1
+python experiments/analysis/nn_leakage.py --n-jobs 1
+python experiments/analysis/ml_evaluation_extended.py --n-jobs 1
 python experiments/analysis/compute_distribution_ratio_error.py
 python experiments/analysis/compute_kl_divergence.py
-python experiments/analysis/compute_pairwise_similarity_preservation.py
-
-# Downstream ML performance
-python experiments/analysis/run_ml_evaluation_extended.py
-python experiments/analysis/aggregate_extended_tox21_results.py
-
-# Runtime
-python experiments/analysis/runtime_scaled_vs_datasailfull.py
-
-# Plots (run after the above)
-python experiments/analysis/plot_pipeline_analysis.py
-python experiments/analysis/plot_results.py
+python experiments/analysis/compute_pairwise_similarity_preservation.py --n-jobs 1
 ```
 
-All outputs are written to `results/analysis/` (CSVs) and `results/analysis/plots/` (figures).
+By default, analyses consider all configured datasets and methods and record missing split files as missing. Options such as `--datasets`, `--methods`, `--pairs`, `--query-n`, `--train-cap`, and `--threshold` allow narrower or sensitivity analyses; check `--help` for each script.
 
----
+The analyses write tables under `results/analysis/unified/`. Per-dataset ML metrics are stored in files such as `bace_predictive_metrics.csv`; metadata files record the evaluated splits and settings. Split files and run metadata are under `results/experiments/unified/splits/<dataset>/<method>/`.
 
-## Methodology Summary
+### Runtime definitions
 
-1. **Downsample** the dataset (random or stratified, 25% by default) to a representative subset.
-2. **Run DataSAIL** on the subset only — similarity computation and ILP optimization scale quadratically with dataset size, so restricting this step to the subset is what makes the approach tractable.
-3. **Assign remaining molecules** to train/val/test using balanced kNN: for each unassigned molecule, retrieve k nearest neighbours (Jaccard similarity on ECFP/Morgan fingerprints, radius=2, 2048 bits via RDKit), score each candidate split by similarity × balance-correction factor, and assign to the highest-scoring split. The balance factor penalizes already-oversized splits and boosts underrepresented ones, which is what prevents the train-dominance failure seen under naive nearest-neighbour propagation.
+For scaled and full DataSAIL runs, `total_seconds` is end-to-end wall time, including data loading and validation, fingerprint generation where applicable, DataSAIL, assignment, and output preparation. `datasail_seconds` measures only the DataSAIL call. The random baseline has end-to-end time but no DataSAIL stage. `runtime_comparision.py` reads these values into `runtime_comparison.csv`.
 
-Full derivation, complexity analysis (O(k² + (n−k)·K) vs. O(n²) for full DataSAIL), and evaluation framework (leakage metrics, split-quality metrics, downstream ML performance) are in `report/`.
+Report end-to-end time when comparing user-visible computational cost. Runtime depends on hardware and software versions; record the machine, environment, code revision, seed, and settings.
 
----
+### Similarity and leakage interpretation
 
-## Datasets
+`leakage_analaysis.py` estimates the mean Tanimoto similarity across sampled train-test molecule pairs. Its default is 100,000 sampled pairs. `nn_leakage.py` estimates each sampled test molecule's maximum similarity to training molecules; by default it samples up to 500 test molecules and caps the training set at 10,000 molecules, using a 0.7 threshold for its high-similarity fraction.
 
-From [MoleculeNet](https://doi.org/10.1039/c7sc02664a):
+These are measures of structural proximity across splits, not direct evidence of target-label leakage. For larger datasets they are sampled estimates, not exhaustive comparisons.
 
-| Dataset | Size | Task |
-|---|---|---|
-| BACE | ~1.5k | binary classification |
-| BBBP | ~2k | binary classification |
-| Tox21 | ~8k | multi-task toxicity |
-| HIV | ~41k | activity prediction |
+`compute_distribution_ratio_error.py` and `compute_kl_divergence.py` compare target distributions in each split with the source distribution. `compute_pairwise_similarity_preservation.py` estimates how well each scaled method’s anchor set preserves the source dataset’s within-dataset pairwise similarity; it does not measure train-test leakage. These metrics answer different questions and should not be collapsed into a single “leakage” score.
 
----
+### Predictive evaluation
 
-## Status
+`ml_evaluation_extended.py` evaluates a fixed fingerprint-based baseline: SGD classification for classification tasks and Ridge regression for regression tasks. It writes per-task metrics and status fields. MCC is applicable to classification, not regression; regression results use MAE, RMSE, and R². For sparse multi-task datasets such as PCBA and MUV, interpret accuracy alongside PR-AUC, MCC, and label prevalence.
 
-Preliminary/exploratory results (single run, seed=42) — see `report/` conclusion and future work for planned extensions (larger datasets, dynamic hyperparameter tuning for k, evaluation on D-MPNN models).
+A predictive score is affected by the difficulty and composition of each test split. Lower scores on a structurally separated split do not by themselves indicate a defective splitter. Compare predictive metrics with split sizes, target distributions, and structural-similarity estimates. Current single-seed results are exploratory; repeat seeds and report variability before drawing general conclusions.
+
+## Current result coverage and limitations
+
+The unified results currently contain full DataSAIL splits for BACE, BBBP, Tox21, ESOL, FreeSolv, and Lipophilicity. Unified full splits for HIV, QM9, MUV, and PCBA are not currently present. A prior HIV full-DataSAIL runtime log records 1,899 seconds (about 32 minutes), but its DataSAIL output is in the legacy layout and has not been normalized into the unified split directory. A roughly half-day QM9 full-run duration has been reported, but no corresponding unified split and run metadata are present here. Treat both as context until their logs, input versions, and outputs are verified and recorded in the unified format. PCBA full DataSAIL is considered infeasible in the current project plan.
+
+The current scaled runs show that the DataSAIL anchor stage can be a small fraction of end-to-end time on larger datasets; fingerprint generation and nearest-neighbor assignment also contribute substantially. Therefore, do not present DataSAIL-only runtime as the total cost of scaled splitting. Full DataSAIL comparisons on the largest datasets remain incomplete until the planned HPC jobs are completed or documented as infeasible.
+
+QM9's current regression results include extremely poor R² for target `A` on some splits. That target dominates a macro average across QM9 properties and makes a single aggregate R² plot hard to interpret.
+## Results organization and provenance
+
+`results/analysis/unified/` is the current analysis output. `results/analysis/Preliminary/` contains older exploratory outputs. Other archived scripts and historical result layouts may use different schemas, paths, seeds, and timing definitions; do not combine them with unified outputs without checking provenance.
+
+Each new run writes metadata including its source-data hash, seed, parameters, package versions, split counts, runtimes, and Git revision/dirty status. 

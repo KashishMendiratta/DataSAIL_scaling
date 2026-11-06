@@ -221,3 +221,18 @@ experiments/logs/*
 
 # Mac
 .DS_Store
+
+# Local inputs and generated experiment artifacts
+data/sampled/*
+!data/sampled/.gitkeep
+data/temp/*
+!data/temp/.gitkeep
+results/analysis/
+results/experiments/
+results/configured/
+results/datasail_outputs/
+results/pipeline_debug/
+logs/
+
+# Generated Python cache files
+__pycache__/

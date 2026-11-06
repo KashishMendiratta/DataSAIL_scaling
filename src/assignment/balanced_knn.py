@@ -17,7 +17,8 @@ def balanced_knn_assign(
     remaining_fps: np.ndarray,
     k: int = 5,
     target_ratios: dict = None,
-    balance_weight: float = 1.0
+    balance_weight: float = 1.0,
+    n_jobs: int = -1,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Assign remaining samples using balanced kNN.
@@ -40,7 +41,7 @@ def balanced_knn_assign(
         target_ratios = {'train': 0.7, 'val': 0.2, 'test': 0.1}
     
     # Fit kNN
-    knn = NearestNeighbors(n_neighbors=k, metric='jaccard', n_jobs=-1)
+    knn = NearestNeighbors(n_neighbors=k, metric='jaccard', n_jobs=n_jobs)
     knn.fit(train_fps)
     
     # Find neighbors
