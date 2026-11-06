@@ -1,0 +1,20 @@
+universe = docker
+docker_image = $(image)
+executable = experiments/condor/run_job.sh
+arguments = $(repo_dir) all unified-aggregate 0 42 1
+initialdir = $(repo_dir)
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
++WantGPUHomeMounted = true
+requirements = (UidDomain == "cs.uni-saarland.de")
+
+request_cpus = 1
+request_memory = 8GB
+request_disk = 20GB
+
+log = $(repo_dir)/logs/condor/unified-aggregate.$(ClusterId).log
+output = $(repo_dir)/logs/condor/unified-aggregate.$(ClusterId).out
+error = $(repo_dir)/logs/condor/unified-aggregate.$(ClusterId).err
+
+queue 1

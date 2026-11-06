@@ -1,0 +1,20 @@
+JOB SWEEP_HIV experiments/condor/seed_robustness.sub
+VARS SWEEP_HIV stage="seed" dataset="hiv" memory="64GB" disk="40GB"
+
+JOB SWEEP_MUV experiments/condor/seed_robustness.sub
+VARS SWEEP_MUV stage="seed" dataset="muv" memory="96GB" disk="60GB"
+
+JOB SWEEP_QM9 experiments/condor/seed_robustness.sub
+VARS SWEEP_QM9 stage="seed" dataset="qm9" memory="96GB" disk="60GB"
+
+JOB SWEEP_PCBA experiments/condor/seed_robustness.sub
+VARS SWEEP_PCBA stage="seed" dataset="pcba" memory="128GB" disk="100GB"
+
+JOB ROBUSTNESS experiments/condor/seed_robustness.sub
+VARS ROBUSTNESS stage="robustness" dataset="all" memory="96GB" disk="100GB"
+
+JOB ML_EVALUATION experiments/condor/seed_robustness.sub
+VARS ML_EVALUATION stage="ml" dataset="all" memory="128GB" disk="100GB"
+
+PARENT SWEEP_HIV SWEEP_MUV SWEEP_QM9 SWEEP_PCBA CHILD ROBUSTNESS
+PARENT ROBUSTNESS CHILD ML_EVALUATION

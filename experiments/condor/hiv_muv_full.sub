@@ -1,0 +1,23 @@
+universe = docker
+docker_image = $(image)
+executable = experiments/condor/run_job.sh
+arguments = $(repo_dir) $(dataset) full 0.02 42 $(n_jobs)
+initialdir = $(repo_dir)
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
++WantGPUHomeMounted = true
+requirements = (UidDomain == "cs.uni-saarland.de")
+
+request_cpus = $(n_jobs)
+request_memory = $(memory)
+request_disk = $(disk)
+
+log = $(repo_dir)/logs/condor/full.$(dataset).$(ClusterId).log
+output = $(repo_dir)/logs/condor/full.$(dataset).$(ClusterId).$(ProcId).out
+error = $(repo_dir)/logs/condor/full.$(dataset).$(ClusterId).$(ProcId).err
+
+queue dataset, memory, disk, n_jobs from (
+hiv 128GB 30GB 4
+muv 900GB 100GB 1
+)

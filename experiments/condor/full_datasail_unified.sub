@@ -1,0 +1,29 @@
+# Current unified full-DataSAIL jobs (HIV, QM9, MUV).
+universe = docker
+docker_image = kashishhm/datasail-scale:py310
+executable = experiments/condor/run_full_datasail_unified.sh
+arguments = /home/kame00004/DataSAIL_scaling $(dataset) $(seed) $(n_jobs) $(max_sec) $(e_clusters)
+initialdir = /home/kame00004/DataSAIL_scaling
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
++WantGPUHomeMounted = true
+requirements = (UidDomain == "cs.uni-saarland.de")
+
+request_cpus = $(n_jobs)
+request_memory = $(memory)
+request_disk = $(disk)
+
+log = /home/kame00004/DataSAIL_scaling/logs/condor/full-unified.$(dataset).$(ClusterId).log
+output = /home/kame00004/DataSAIL_scaling/logs/condor/full-unified.$(dataset).$(ClusterId).$(ProcId).out
+error = /home/kame00004/DataSAIL_scaling/logs/condor/full-unified.$(dataset).$(ClusterId).$(ProcId).err
+
+seed = 42
+max_sec = 43200
+e_clusters = 10
+
+queue dataset, memory, disk, n_jobs from (
+hiv 128GB 30GB 4
+qm9 1024GB 200GB 1
+muv 1024GB 200GB 1
+)

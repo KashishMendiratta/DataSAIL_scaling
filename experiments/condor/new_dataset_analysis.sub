@@ -1,0 +1,22 @@
+universe = docker
+docker_image = $(image)
+executable = experiments/condor/run_job.sh
+n_jobs = 8
+arguments = $(repo_dir) $(dataset) analysis 0 42 $(n_jobs)
+initialdir = $(repo_dir)
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
++WantGPUHomeMounted = true
+requirements = (UidDomain == "cs.uni-saarland.de")
+request_cpus = $(n_jobs)
+request_memory = 32GB
+request_disk = 20GB
+log = $(repo_dir)/logs/condor/analysis.$(dataset).$(ClusterId).log
+output = $(repo_dir)/logs/condor/analysis.$(dataset).$(ClusterId).$(ProcId).out
+error = $(repo_dir)/logs/condor/analysis.$(dataset).$(ClusterId).$(ProcId).err
+queue dataset from (
+muv
+esol
+freesolv
+lipophilicity
+)

@@ -1,0 +1,31 @@
+universe = docker
+docker_image = $(image)
+executable = experiments/condor/run_job.sh
+arguments = $(repo_dir) $(dataset) unified-analysis 0 42 $(n_jobs)
+initialdir = $(repo_dir)
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
++WantGPUHomeMounted = true
+requirements = (UidDomain == "cs.uni-saarland.de")
+
+request_cpus = $(n_jobs)
+request_memory = $(memory)
+request_disk = $(disk)
+
+log = $(repo_dir)/logs/condor/unified.$(dataset).$(ClusterId).log
+output = $(repo_dir)/logs/condor/unified.$(dataset).$(ClusterId).$(ProcId).out
+error = $(repo_dir)/logs/condor/unified.$(dataset).$(ClusterId).$(ProcId).err
+
+queue dataset, memory, disk, n_jobs from (
+bace 16GB 20GB 4
+bbbp 16GB 20GB 4
+tox21 32GB 30GB 4
+hiv 48GB 30GB 4
+qm9 64GB 40GB 4
+pcba 128GB 50GB 4
+muv 64GB 40GB 4
+esol 16GB 20GB 4
+freesolv 16GB 20GB 4
+lipophilicity 16GB 20GB 4
+)

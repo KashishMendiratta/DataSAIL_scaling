@@ -1,0 +1,20 @@
+universe = docker
+docker_image = kashishhm/datasail-scale:py310
+executable = /home/kame00004/DataSAIL_scaling/experiments/condor/run_seed_analysis_stage.sh
+arguments = /home/kame00004/DataSAIL_scaling $(stage) $(dataset)
+initialdir = /home/kame00004/DataSAIL_scaling
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
++WantGPUHomeMounted = true
+requirements = (UidDomain == "cs.uni-saarland.de")
+
+request_cpus = 1
+request_memory = $(memory)
+request_disk = $(disk)
+
+log = /home/kame00004/DataSAIL_scaling/logs/condor/seed-analysis.$(stage).$(dataset).$(ClusterId).log
+output = /home/kame00004/DataSAIL_scaling/logs/condor/seed-analysis.$(stage).$(dataset).$(ClusterId).$(ProcId).out
+error = /home/kame00004/DataSAIL_scaling/logs/condor/seed-analysis.$(stage).$(dataset).$(ClusterId).$(ProcId).err
+
+queue 1
