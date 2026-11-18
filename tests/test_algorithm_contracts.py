@@ -1,6 +1,7 @@
 """Algorithm-level regression tests for split sampling and assignment."""
 from collections import Counter
 import unittest
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -9,7 +10,7 @@ from src.assignment.balanced_knn import balanced_knn_assign
 from src.assignment.knn_assignment import evaluate_assignment_quality, knn_assign
 from src.downsampling.strategies import random_downsample, stratified_downsample
 try:
-    from src.pipeline_engine import choose_anchors, verify_assignments
+    from src.pipeline_engine import _git_provenance, choose_anchors, verify_assignments
 except ModuleNotFoundError as exc:
     if exc.name != "rdkit":
         raise
@@ -103,6 +104,22 @@ class AssignmentTests(unittest.TestCase):
 
 @unittest.skipIf(choose_anchors is None, "pipeline-engine tests require RDKit")
 class PipelineInvariantTests(unittest.TestCase):
+    def test_git_provenance_uses_submit_host_commit_and_clean_state(self):
+        env = {
+            "DATASAIL_GIT_COMMIT": "abc1234",
+            "DATASAIL_GIT_WORKTREE_DIRTY": "false",
+        }
+        with patch.dict("os.environ", env):
+            self.assertEqual(_git_provenance(), ("abc1234", False))
+
+    def test_git_provenance_preserves_dirty_state_from_submit_host(self):
+        env = {
+            "DATASAIL_GIT_COMMIT": "abc1234",
+            "DATASAIL_GIT_WORKTREE_DIRTY": "true",
+        }
+        with patch.dict("os.environ", env):
+            self.assertEqual(_git_provenance(), ("abc1234", True))
+
     def test_random_anchor_selection_is_seed_reproducible_and_exact_sized(self):
         frame = pd.DataFrame({"label": ["a", "b"] * 20})
         spec = {"stratify_column": "label", "task_type": "classification", "path": "fixture.csv"}

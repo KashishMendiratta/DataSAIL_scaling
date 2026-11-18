@@ -1,7 +1,7 @@
 # Current unified full-DataSAIL jobs (HIV, QM9, MUV).
 universe = docker
 docker_image = $(image)
-environment = "DATASAIL_CONTAINER_REF=$(image) CONDOR_JOB_ID=$(ClusterId).$(ProcId)"
+environment = "DATASAIL_CONTAINER_REF=$(image) DATASAIL_GIT_COMMIT=$(git_commit) DATASAIL_GIT_WORKTREE_DIRTY=$(git_dirty) CONDOR_JOB_ID=$(ClusterId).$(ProcId)"
 executable = experiments/condor/run_full_datasail_unified.sh
 arguments = /home/kame00004/DataSAIL_scaling $(dataset) $(seed) $(n_jobs) $(max_sec) $(e_clusters)
 initialdir = /home/kame00004/DataSAIL_scaling

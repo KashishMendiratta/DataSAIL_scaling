@@ -28,6 +28,20 @@ def _condor_job_id():
     return os.environ.get('CONDOR_JOB_ID') or None
 
 
+def _git_provenance():
+    commit = os.environ.get('DATASAIL_GIT_COMMIT')
+    dirty_value = os.environ.get('DATASAIL_GIT_WORKTREE_DIRTY')
+    if commit:
+        dirty = None if dirty_value is None else dirty_value.strip().lower() == 'true'
+        return commit, dirty
+    try:
+        commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
+        dirty = bool(subprocess.check_output(['git', 'status', '--porcelain'], cwd=ROOT, text=True).strip())
+        return commit, dirty
+    except Exception:
+        return None, None
+
+
 def _run_id():
     return os.environ.get('DATASAIL_RUN_ID', '').strip()
 
@@ -174,10 +188,7 @@ def run(name, strategy, sample_ratio=None, seed=None, k=None, n_jobs=1, dry_run=
     split_root.mkdir(parents=True,exist_ok=True)
     for split in split_names: output_frame.loc[output_frame.split==split].drop(columns='split').to_csv(split_root/f'{split}.csv',index=False)
     source=ROOT/spec['path']; digest=hashlib.sha256(source.read_bytes()).hexdigest()
-    try:
-        commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
-        dirty=bool(subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).strip())
-    except Exception: commit,dirty=None,None
+    commit, dirty = _git_provenance()
     total_seconds=time.perf_counter()-run_started
     meta={'dataset':name,'method':f'datasail_scaled_{strategy}','run_id':_run_id() or None,'strategy':strategy,'source_path':spec['path'],'source_sha256':digest,
           'id_column':spec.get('id_column'),'smiles_column':spec['smiles_column'],'target_columns':spec.get('target_columns'),
@@ -215,11 +226,7 @@ def _save_result(name, method, frame, labels, metadata):
             'invalid_ids':metadata.pop('invalid_ids'),'split_ratios':CONFIG['defaults']['split_ratios'],
             'split_counts':dict(Counter(labels)),'python_version':platform.python_version(),
             'package_versions':{p:importlib.metadata.version(p) for p in ('datasail','numpy','pandas','scikit-learn','rdkit')}}
-    try:
-        base['git_commit']=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
-        base['git_worktree_dirty']=bool(subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).strip())
-    except Exception:
-        base['git_commit']=base['git_worktree_dirty']=None
+    base['git_commit'], base['git_worktree_dirty'] = _git_provenance()
     base['container_image']=_container_ref()
     base['condor_job_id']=_condor_job_id()
     started=metadata.pop('_started')

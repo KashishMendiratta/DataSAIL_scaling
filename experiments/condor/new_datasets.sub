@@ -1,6 +1,6 @@
 universe = docker
 docker_image = $(image)
-environment = "DATASAIL_CONTAINER_REF=$(image) CONDOR_JOB_ID=$(ClusterId).$(ProcId)"
+environment = "DATASAIL_CONTAINER_REF=$(image) DATASAIL_GIT_COMMIT=$(git_commit) DATASAIL_GIT_WORKTREE_DIRTY=$(git_dirty) CONDOR_JOB_ID=$(ClusterId).$(ProcId)"
 executable = experiments/condor/run_job.sh
 seed = 42
 arguments = $(repo_dir) $(dataset) all-local $(sample_ratio) $(seed) $(n_jobs)

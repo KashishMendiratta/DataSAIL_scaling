@@ -61,16 +61,24 @@ for package in ("datasail", "numpy", "pandas", "scikit-learn", "rdkit"):
         manifest["package_versions"][package] = importlib.metadata.version(package)
     except importlib.metadata.PackageNotFoundError:
         manifest["package_versions"][package] = None
-try:
-    manifest["git_commit"] = subprocess.check_output(
-        ["git", "rev-parse", "HEAD"], cwd=repo, text=True, stderr=subprocess.DEVNULL
-    ).strip()
-    manifest["git_worktree_dirty"] = bool(subprocess.check_output(
-        ["git", "status", "--porcelain"], cwd=repo, text=True
-    ).strip())
-except Exception:
-    manifest["git_commit"] = None
-    manifest["git_worktree_dirty"] = None
+commit_from_submit = os.environ.get("DATASAIL_GIT_COMMIT")
+dirty_from_submit = os.environ.get("DATASAIL_GIT_WORKTREE_DIRTY")
+if commit_from_submit:
+    manifest["git_commit"] = commit_from_submit
+    manifest["git_worktree_dirty"] = (
+        None if dirty_from_submit is None else dirty_from_submit.strip().lower() == "true"
+    )
+else:
+    try:
+        manifest["git_commit"] = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=repo, text=True, stderr=subprocess.DEVNULL
+        ).strip()
+        manifest["git_worktree_dirty"] = bool(subprocess.check_output(
+            ["git", "status", "--porcelain"], cwd=repo, text=True
+        ).strip())
+    except Exception:
+        manifest["git_commit"] = None
+        manifest["git_worktree_dirty"] = None
 try:
     config = json.loads((repo / "experiments/config/datasets.json").read_text())
     names = list(config["datasets"]) if dataset in ("all", "") else [dataset]
