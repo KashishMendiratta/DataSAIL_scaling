@@ -1,5 +1,6 @@
 universe = docker
-docker_image = kashishhm/datasail-scale:py310
+docker_image = $(image)
+environment = "DATASAIL_CONTAINER_REF=$(image) CONDOR_JOB_ID=$(ClusterId).$(ProcId)"
 executable = /home/kame00004/DataSAIL_scaling/experiments/condor/run_seed_analysis_stage.sh
 arguments = /home/kame00004/DataSAIL_scaling $(stage) $(dataset)
 initialdir = /home/kame00004/DataSAIL_scaling

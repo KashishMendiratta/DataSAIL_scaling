@@ -1,5 +1,6 @@
 universe = docker
 docker_image = $(image)
+environment = "DATASAIL_CONTAINER_REF=$(image) CONDOR_JOB_ID=$(ClusterId).$(ProcId)"
 executable = experiments/condor/run_job.sh
 arguments = $(repo_dir) all unified-aggregate 0 42 1
 initialdir = $(repo_dir)

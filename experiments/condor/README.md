@@ -1,0 +1,17 @@
+# Condor container pinning and provenance
+
+The selected runtime image is recorded in `container-image.ref` as an amd64 Linux digest reference. The `py310` tag is mutable, so new jobs must be submitted through `submit_pinned.sh`; the helper validates that the reference contains a SHA-256 digest and supplies it to the submit description as the `image` macro.
+
+Example from the repository root on the authenticated Condor submit host:
+
+```bash
+experiments/condor/submit_pinned.sh \
+  experiments/condor/unified_all_datasets.sub \
+  repo_dir="$HOME/DataSAIL_scaling" dataset=bace n_jobs=4 memory=16GB disk=20GB
+```
+
+For submit descriptions with additional required macros, pass them after the submit file, for example `repo_dir=...`, `dataset=...`, `n_jobs=...`, or `memory=...`. Do not submit these files directly with `condor_submit`: their `docker_image` and recorded container reference both use the required `image` macro.
+
+Every Condor submit description exports `DATASAIL_CONTAINER_REF` and the Condor job ID. The split pipeline stores the image reference in `run_metadata.json`. Jobs launched through `run_job.sh` also write a per-job sidecar under `results/provenance/condor_jobs/`, including the Git commit and dirty state, input dataset hashes, package versions, worker hostname, parameters, and exit status. Preserve those sidecars together with the split/analysis outputs and Condor event, stdout, and stderr logs when transferring results locally.
+
+A digest pins software image contents. It does not pin the Condor worker hardware or restore provenance for historical runs.
