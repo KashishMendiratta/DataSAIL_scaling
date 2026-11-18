@@ -20,6 +20,14 @@ SPLIT_ROOT = ROOT / 'results/experiments/unified/splits'
 DATASAIL_ROOT = ROOT / 'results/experiments/unified/datasail'
 CONFIG = json.loads(CONFIG_PATH.read_text())
 
+def _container_ref():
+    return os.environ.get('DATASAIL_CONTAINER_REF') or None
+
+
+def _condor_job_id():
+    return os.environ.get('CONDOR_JOB_ID') or None
+
+
 def _run_id():
     return os.environ.get('DATASAIL_RUN_ID', '').strip()
 
@@ -179,6 +187,7 @@ def run(name, strategy, sample_ratio=None, seed=None, k=None, n_jobs=1, dry_run=
           'n_anchor_rows':len(anchors),'split_counts':dict(Counter(labels)),'datasail_seconds':datasail_seconds,
           'total_seconds':total_seconds,'runtime_scope':'end-to-end pipeline (load through split and metadata preparation)','n_jobs':n_jobs,
           'git_commit':commit,'git_worktree_dirty':dirty,'python_version':platform.python_version(),
+          'container_image':_container_ref(),'condor_job_id':_condor_job_id(),
           'package_versions':{p:importlib.metadata.version(p) for p in ('datasail','numpy','pandas','scikit-learn','rdkit')}}
     (split_root/'run_metadata.json').write_text(json.dumps(meta,indent=2)+'\n')
     (split_root/'anchor_manifest.json').write_text(json.dumps({'dataset':name,'method':meta['method'],'seed':seed,'sample_ratio':sample_ratio,'anchor_ids':sampled[id_col].astype(str).tolist()},indent=2)+'\n')
@@ -211,6 +220,8 @@ def _save_result(name, method, frame, labels, metadata):
         base['git_worktree_dirty']=bool(subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).strip())
     except Exception:
         base['git_commit']=base['git_worktree_dirty']=None
+    base['container_image']=_container_ref()
+    base['condor_job_id']=_condor_job_id()
     started=metadata.pop('_started')
     base.update(metadata)
     base.update({'runtime_scope':'end-to-end split generation','total_seconds':time.perf_counter()-started})
