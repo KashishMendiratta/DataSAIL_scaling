@@ -55,3 +55,5 @@ outputs are under `results/sensitivity_analysis/metrics_k3/`. Running the
 command with no dataset arguments processes all configured datasets. The
 locked `k=3` was selected by anchor holdout on the four primary datasets and
 applied unchanged to the other configured datasets.
+
+We conducted a sensitivity analysis to assess how the balanced k-nearest-neighbor assignment stage depends on its neighborhood size and on the order in which non-anchor molecules are processed. This check was motivated by the greedy assignment procedure: each assignment updates the current split counts, which can affect subsequent decisions. We compared candidate values of *k* and several processing orders while keeping the saved DataSAIL anchor assignments fixed. We then selected *k* using five-fold holdout prediction of the anchor split labels, without using downstream leakage or machine-learning metrics to choose the parameter. This analysis therefore evaluates assignment stability and provides a pre-specified basis for choosing *k*; it does not establish which value gives the best downstream predictive performance.

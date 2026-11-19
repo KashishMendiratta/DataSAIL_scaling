@@ -230,9 +230,11 @@ data/temp/*
 results/analysis/
 results/experiments/
 results/configured/
+results/sensitivity_analysis/
 results/datasail_outputs/
 results/pipeline_debug/
 logs/
 
 # Generated Python cache files
 __pycache__/
+.venv-dmpnn/

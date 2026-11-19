@@ -188,7 +188,8 @@ def evaluate_muv(split_type: str, train: pd.DataFrame, test: pd.DataFrame,
         two=len(np.unique(y_test))==2
         rows.append({**base,"status":"ok" if two else "test_has_one_class_auc_unavailable",
             "roc_auc":float(roc_auc_score(y_test,prob)) if two else np.nan,
-            "pr_auc":float(average_precision_score(y_test,prob)),"accuracy":float(accuracy_score(y_test,pred)),
+            "pr_auc":float(average_precision_score(y_test,prob)) if two else np.nan,
+            "accuracy":float(accuracy_score(y_test,pred)),
             "f1":float(f1_score(y_test,pred,zero_division=0)),"mcc":float(matthews_corrcoef(y_test,pred))})
     return rows
 
