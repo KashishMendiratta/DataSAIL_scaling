@@ -13,9 +13,11 @@ def main():
     parser.add_argument('--n-jobs',type=int,default=1)
     parser.add_argument('--max-sec',type=int,default=43200)
     parser.add_argument('--e-clusters',type=int,default=10)
+    parser.add_argument('--spectral-eigen-solver',choices=('arpack','lobpcg'))
     args=parser.parse_args(); failed=[]
     for dataset in args.datasets:
-        try: run_full(dataset,args.seed,args.n_jobs,args.max_sec,args.e_clusters)
+        try: run_full(dataset,args.seed,args.n_jobs,args.max_sec,args.e_clusters,
+                      args.spectral_eigen_solver)
         except Exception as exc: failed.append((dataset,str(exc))); print(f'FAILED {dataset}: {exc}',file=sys.stderr)
     if failed: raise SystemExit(f'{len(failed)} dataset(s) failed; see messages above')
 if __name__=='__main__': main()

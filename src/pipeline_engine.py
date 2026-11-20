@@ -5,7 +5,7 @@ strategies are random anchor sampling and label-stratified anchor sampling; both
 use DataSAIL for anchor splits and balanced kNN for assigning the remaining rows.
 """
 from __future__ import annotations
-import argparse, hashlib, importlib.metadata, json, os, platform, subprocess, sys, time
+import argparse, functools, hashlib, importlib.metadata, json, os, platform, subprocess, sys, time
 from collections import Counter
 from pathlib import Path
 import numpy as np
@@ -251,7 +251,8 @@ def run_random(name, seed=42):
         'fingerprint':fps_cfg,'_started':started})
     print(json.dumps(result,indent=2)); return result
 
-def run_full(name, seed=42, n_jobs=1, max_sec=43200, e_clusters=10):
+def run_full(name, seed=42, n_jobs=1, max_sec=43200, e_clusters=10,
+             spectral_eigen_solver=None):
     """Run DataSAIL on every valid row; resource failures remain dataset-specific."""
     started=time.perf_counter(); frame,n_input,invalid=load_dataset(name)
     id_col,smiles_col='_datasail_id','_datasail_smiles'
@@ -260,10 +261,20 @@ def run_full(name, seed=42, n_jobs=1, max_sec=43200, e_clusters=10):
     frame[[id_col,smiles_col]].rename(columns={id_col:'id',smiles_col:'smiles'}).to_csv(input_path,index=False)
     output=_result_dir(DATASAIL_ROOT,name,'datasail_full'); _ensure_fresh_run(output); output.mkdir(parents=True,exist_ok=True)
     from datasail.sail import sail
+    from datasail.cluster import clustering as datasail_clustering
+    original_spectral_clustering = datasail_clustering.SpectralClustering
+    if spectral_eigen_solver is not None:
+        datasail_clustering.SpectralClustering = functools.partial(
+            original_spectral_clustering,
+            eigen_solver=spectral_eigen_solver,
+        )
     t0=time.perf_counter()
-    sail(e_type='M',e_data=str(input_path),techniques=['C1e'],e_sim='ecfp',e_clusters=e_clusters,
-         splits=list(CONFIG['defaults']['split_ratios'].values()),names=list(CONFIG['defaults']['split_ratios']),
-         output=str(output),verbosity='W',runs=1,threads=n_jobs,max_sec=max_sec)
+    try:
+        sail(e_type='M',e_data=str(input_path),techniques=['C1e'],e_sim='ecfp',e_clusters=e_clusters,
+             splits=list(CONFIG['defaults']['split_ratios'].values()),names=list(CONFIG['defaults']['split_ratios']),
+             output=str(output),verbosity='W',runs=1,threads=n_jobs,max_sec=max_sec)
+    finally:
+        datasail_clustering.SpectralClustering = original_spectral_clustering
     datasail_seconds=time.perf_counter()-t0
     files=sorted((output/'C1e').glob('Molecule_*_splits.tsv'),key=lambda p:p.stat().st_mtime)
     if not files: raise FileNotFoundError(f'No full DataSAIL split under {output}/C1e')
@@ -276,6 +287,7 @@ def run_full(name, seed=42, n_jobs=1, max_sec=43200, e_clusters=10):
     result=_save_result(name,'datasail_full',frame,labels,{'seed':seed,'sample_ratio':1.0,'n_input_rows':n_input,
         'n_invalid_smiles':len(invalid),'invalid_ids':invalid['_datasail_id'].astype(str).tolist(),
         'fingerprint':CONFIG['defaults']['fingerprint'],'e_clusters':e_clusters,'n_jobs':n_jobs,
+        'spectral_eigen_solver':spectral_eigen_solver or 'arpack_default',
         'datasail_seconds':datasail_seconds,'max_sec':max_sec,'_started':started})
     print(json.dumps(result,indent=2)); return result
 
