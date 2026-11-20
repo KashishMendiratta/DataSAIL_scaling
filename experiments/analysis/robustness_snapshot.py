@@ -122,6 +122,8 @@ def main():
     p.add_argument("--train-cap", type=int, default=10000)
     p.add_argument("--n-jobs", type=int, default=1)
     p.add_argument("--seed", type=int, default=42, help="Deterministic sample seed for leakage queries.")
+    p.add_argument("--output-dir", type=Path,
+                   help="Output directory; defaults to results/analysis/unified/robustness.")
     a = p.parse_args()
     threshold_rows, overlap_rows, performance_rows = [], [], []
     for run_id_arg in a.run_ids:
@@ -165,7 +167,7 @@ def main():
                     seed = 42
                 performance_rows.extend(_metric_rows(dataset, method, run_id_arg, train, test,
                                                       qi, sims, a.n_jobs, seed))
-    outdir = ANALYSIS_DIR / "robustness"
+    outdir = a.output_dir.expanduser().resolve() if a.output_dir else ANALYSIS_DIR / "robustness"
     outdir.mkdir(parents=True, exist_ok=True)
     th, ov, perf = pd.DataFrame(threshold_rows), pd.DataFrame(overlap_rows), pd.DataFrame(performance_rows)
     th.to_csv(outdir / "leakage_thresholds_raw.csv", index=False)
