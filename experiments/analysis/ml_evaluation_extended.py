@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import time
@@ -193,21 +194,26 @@ def evaluate_muv(split_type: str, train: pd.DataFrame, test: pd.DataFrame,
             "f1":float(f1_score(y_test,pred,zero_division=0)),"mcc":float(matthews_corrcoef(y_test,pred))})
     return rows
 
-def split_directory(dataset: str, split_type: str) -> Path:
+def split_directory(dataset: str, split_type: str, run_id: str = "") -> Path:
     """Resolve configured scaled splits and shared legacy baseline/full splits."""
     path = ROOT / "results/experiments/unified/splits" / dataset / split_type
-    run_id = os.environ.get("DATASAIL_RUN_ID", "").strip()
     return path / run_id if run_id else path
 
 
-def run(dataset: str, split_types: list[str], n_jobs: int, seed: int) -> pd.DataFrame:
+def run(dataset: str, split_types: list[str], n_jobs: int, seed: int,
+        run_id: str = "", output_dir: Path | None = None) -> pd.DataFrame:
     records = []
+    split_hashes = {}
     for split_type in split_types:
-        split_dir = split_directory(dataset, split_type)
+        split_dir = split_directory(dataset, split_type, run_id)
         train_path, test_path = split_dir / "train.csv", split_dir / "test.csv"
         if not train_path.exists() or not test_path.exists():
             print(f"Skipping {dataset}/{split_type}: train/test split files missing at {split_dir}", flush=True)
             continue
+        split_hashes[split_type] = {
+            part: hashlib.sha256((split_dir / f"{part}.csv").read_bytes()).hexdigest()
+            for part in ("train", "val", "test")
+        }
         start = time.time()
         train, test = pd.read_csv(train_path), pd.read_csv(test_path)
         # Legacy original-dataset splits sometimes retain the source SMILES
@@ -230,9 +236,8 @@ def run(dataset: str, split_types: list[str], n_jobs: int, seed: int) -> pd.Data
     if not records:
         raise FileNotFoundError(f"No usable split files found for {dataset}")
     results = pd.DataFrame(records)
-    outdir = ROOT / "results/analysis/unified"
+    outdir = (output_dir or ROOT / "results/analysis/unified").expanduser().resolve()
     outdir.mkdir(parents=True, exist_ok=True)
-    run_id = os.environ.get("DATASAIL_RUN_ID", "").strip()
     suffix = f"_{run_id}" if run_id else ""
     output = outdir / f"{dataset}_predictive_metrics{suffix}.csv"
     results.to_csv(output, index=False)
@@ -242,7 +247,14 @@ def run(dataset: str, split_types: list[str], n_jobs: int, seed: int) -> pd.Data
         "models": {"qm9": "multi-output Ridge(alpha=1.0, solver=lsqr)",
                    "pcba/muv": "per-assay SGDClassifier(log_loss, class_weight=balanced, early_stopping=True)",
                    "molecular regression": "per-target Ridge(alpha=1.0, solver=lsqr)"},
-        "output": str(output.relative_to(ROOT)), "n_result_rows": len(results),
+        "run_id": run_id or None,
+        "split_sha256": split_hashes,
+        "analysis_git_commit": os.environ.get("DATASAIL_GIT_COMMIT"),
+        "analysis_git_worktree_dirty": os.environ.get("DATASAIL_GIT_WORKTREE_DIRTY"),
+        "container_image": os.environ.get("DATASAIL_CONTAINER_REF"),
+        "condor_job_id": os.environ.get("CONDOR_JOB_ID"),
+        "output": str(output.relative_to(ROOT)) if output.is_relative_to(ROOT) else str(output),
+        "n_result_rows": len(results),
     }
     (outdir / f"{dataset}_predictive_metrics{suffix}_metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
     print(results.groupby(["split_type", "status"], dropna=False).size().to_string(), flush=True)
@@ -256,11 +268,14 @@ def main() -> None:
     parser.add_argument("--methods", nargs="+", choices=SPLIT_TYPES, default=SPLIT_TYPES)
     parser.add_argument("--n-jobs", type=int, default=1)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--run-id", default=os.environ.get("DATASAIL_RUN_ID", "").strip())
+    parser.add_argument("--output-dir", type=Path)
     args = parser.parse_args()
     failures = []
     for dataset in args.datasets:
         try:
-            run(dataset, args.methods, args.n_jobs, args.seed)
+            run(dataset, args.methods, args.n_jobs, args.seed,
+                run_id=args.run_id, output_dir=args.output_dir)
         except Exception as exc:
             failures.append((dataset, str(exc)))
             print(f"FAILED {dataset}: {exc}", flush=True)
