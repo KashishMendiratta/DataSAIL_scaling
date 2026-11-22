@@ -7,6 +7,7 @@ selection; final metrics are computed from predictions on the held-out test set.
 from __future__ import annotations
 
 import argparse
+import hashlib
 from importlib.metadata import PackageNotFoundError, version as package_version
 import json
 import math
@@ -96,7 +97,8 @@ def metric_rows(dataset: str, method: str, seed: int | str, task_type: str,
 
 
 def run_one(dataset: str, method: str, seed: int | str, epochs: int,
-            patience: int, batch_size: int, dry_run: bool = False) -> list[dict] | None:
+            patience: int, batch_size: int, output_dir: Path,
+            dry_run: bool = False) -> list[dict] | None:
     split_dir = resolve_split(dataset, method, int(seed) if seed != "full" else 42)
     paths = [split_dir / f"{part}.csv" for part in ("train", "val", "test")]
     if not all(p.exists() for p in paths):
@@ -112,7 +114,7 @@ def run_one(dataset: str, method: str, seed: int | str, epochs: int,
         raise ValueError(f"No target columns found for {dataset} in {split_dir}")
     task_type = "classification" if DATASETS[dataset]["task_type"] in ("classification", "classification_multitask") else "regression"
     run_name = f"{dataset}__{method}__seed_{seed}"
-    run_dir = OUT / "runs" / run_name
+    run_dir = output_dir / "runs" / run_name
     metric_path = run_dir / "metrics.csv"
     if metric_path.exists():
         print(f"DONE {run_name}: metrics already exist; skipping", flush=True)
@@ -168,6 +170,31 @@ def run_one(dataset: str, method: str, seed: int | str, epochs: int,
         pred = pd.read_csv(pred_path)
         rows = metric_rows(dataset, method, seed, task_type, targets, test, pred, elapsed)
         pd.DataFrame(rows).to_csv(metric_path, index=False)
+        metadata = {
+            "dataset": dataset,
+            "method": method,
+            "split_seed": seed,
+            "split_directory": str(split_dir.relative_to(ROOT)),
+            "split_sha256": {
+                part: hashlib.sha256(path.read_bytes()).hexdigest()
+                for part, path in zip(("train", "val", "test"), paths)
+            },
+            "targets": targets,
+            "task_type": task_type,
+            "elapsed_seconds": elapsed,
+            "epochs": epochs,
+            "patience": patience,
+            "batch_size": batch_size,
+            "pytorch_seed": 42,
+            "chemprop_version": package_version("chemprop"),
+            "torch_version": package_version("torch"),
+            "python_version": sys.version.split()[0],
+            "analysis_git_commit": os.environ.get("DATASAIL_GIT_COMMIT"),
+            "analysis_git_worktree_dirty": os.environ.get("DATASAIL_GIT_WORKTREE_DIRTY"),
+            "container_image": os.environ.get("DATASAIL_CONTAINER_REF"),
+            "condor_job_id": os.environ.get("CONDOR_JOB_ID"),
+        }
+        (run_dir / "run_metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
         print(f"SAVED {run_name}: {metric_path}", flush=True)
         return rows
 
@@ -180,9 +207,11 @@ def main() -> None:
     parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--patience", type=int, default=10)
     parser.add_argument("--batch-size", type=int, default=64)
+    parser.add_argument("--output-dir", type=Path, default=OUT)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
-    OUT.mkdir(parents=True, exist_ok=True)
+    output_dir = args.output_dir.resolve()
+    output_dir.mkdir(parents=True, exist_ok=True)
     manifest = {
         "model": "Chemprop 2D directed message-passing neural network",
         "datasets": args.datasets,
@@ -200,7 +229,7 @@ def main() -> None:
         "python_version": sys.version.split()[0],
         "completed_runs": [],
     }
-    manifest_path = OUT / "run_manifest.json"
+    manifest_path = output_dir / "run_manifest.json"
     if manifest_path.exists():
         previous = json.loads(manifest_path.read_text())
         if (previous.get("datasets"), previous.get("methods"), previous.get("split_seeds")) == (args.datasets, args.methods, args.seeds):
@@ -223,20 +252,21 @@ def main() -> None:
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
 
     records: list[dict] = []
+    failures: list[dict] = []
     for dataset in args.datasets:
         for method in args.methods:
             seeds: list[int | str] = ["full"] if method == "datasail_full" else args.seeds
             for seed in seeds:
                 try:
                     rows = run_one(dataset, method, seed, args.epochs, args.patience,
-                                   args.batch_size, dry_run=args.dry_run)
+                                   args.batch_size, output_dir, dry_run=args.dry_run)
                     if rows:
                         records.extend(rows)
                         completed_name = f"{dataset}/{method}/{seed}"
                         if completed_name not in manifest["completed_runs"]:
                             manifest["completed_runs"].append(completed_name)
                         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
-                        failures_path = OUT / "failures.jsonl"
+                        failures_path = output_dir / "failures.jsonl"
                         if failures_path.exists():
                             remaining = []
                             for line in failures_path.read_text().splitlines():
@@ -246,13 +276,17 @@ def main() -> None:
                             failures_path.write_text("\n".join(remaining) + ("\n" if remaining else ""))
                 except Exception as exc:
                     print(f"FAILED {dataset}/{method}/{seed}: {exc}", flush=True)
-                    with (OUT / "failures.jsonl").open("a") as f:
-                        f.write(json.dumps({"dataset": dataset, "method": method,
-                                            "seed": seed, "error": str(exc)}) + "\n")
-    metric_files = sorted((OUT / "runs").glob("*/metrics.csv"))
+                    failure = {"dataset": dataset, "method": method,
+                               "seed": seed, "error": str(exc)}
+                    failures.append(failure)
+                    with (output_dir / "failures.jsonl").open("a") as f:
+                        f.write(json.dumps(failure) + "\n")
+    metric_files = sorted((output_dir / "runs").glob("*/metrics.csv"))
     if metric_files:
         combined = pd.concat([pd.read_csv(p) for p in metric_files], ignore_index=True)
-        combined.to_csv(OUT / "metrics.csv", index=False)
+        combined.to_csv(output_dir / "metrics.csv", index=False)
+    if failures:
+        raise SystemExit(f"{len(failures)} D-MPNN run(s) failed; inspect {output_dir / 'failures.jsonl'}")
     if not args.dry_run and len(manifest["completed_runs"]) == 0:
         raise SystemExit("No D-MPNN runs completed; inspect failures.jsonl")
 
