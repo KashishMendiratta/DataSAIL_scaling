@@ -1,8 +1,10 @@
 # Scaling DataSAIL for molecular datasets
 
-This repository contains the implementation and experiments for scaling DataSAIL to larger molecular datasets. The scaled method runs DataSAIL on an anchor subset, then assigns the remaining molecules using Morgan fingerprints and balanced k-nearest-neighbor assignment. The experiments compare this approach with random splitting and full DataSAIL.
+This repository contains the implementation and experiments for scaling DataSAIL to larger molecular datasets. The scaled method runs DataSAIL on an anchor subset, then assigns the remaining molecules using Morgan fingerprints and balanced k-nearest-neighbor assignment. The current study compares random splitting, scaled DataSAIL with random anchors, scaled DataSAIL with stratified anchors, and full DataSAIL where a successful full run is available.
 
-The thesis report is [`reports/MASTER REPORT.pdf`](reports/MASTER%20REPORT.pdf). Results produced after that report are extensions; they do not retroactively change the report's original claims.
+The provenance-controlled November 2026 study covers ten molecular datasets, from 642 to 437,927 valid molecules. Random and both scaled methods were evaluated over five split seeds. Full DataSAIL has one reference run on nine datasets; PCBA is the only dataset without a Full DataSAIL reference in the selected snapshot. On QM9, the observed mean end-to-end runtime was 1,493.7 seconds for scaled-random DataSAIL versus 12,979.8 seconds for the single full-DataSAIL run, an 8.7× comparison. These are observed runs, not a hardware-independent speed guarantee.
+
+The original thesis report is [`reports/MASTER REPORT.pdf`](reports/MASTER%20REPORT.pdf). It is a historical snapshot and retains its original scope and claims. This README describes the newer November 2026 evidence, which supersedes the report for current repository and portfolio summaries.
 
 ## Current workflow
 
@@ -15,7 +17,7 @@ The active pipelines are:
 | `experiments/pipelines/dataSAIL_scaled_stratified.py` | Select anchors while preserving the configured target strata, then use the same DataSAIL and balanced-kNN steps. |
 | `experiments/pipelines/full_dataSAIL.py` | Run DataSAIL on all valid molecules. This requires HPC resources for larger datasets. |
 
-All four pipelines use the shared dataset registry and defaults in `experiments/config/datasets.json`. The default split proportions are 70% train, 20% validation, and 10% test. The default seed is 42; scaled anchor fractions are specified per dataset; the default fingerprint is Morgan radius 2 with 2048 bits; and the default balanced-kNN uses `k=5` and balance weight 2.0. These are configurable, not universal constants.
+All four pipelines use the shared dataset registry and defaults in `experiments/config/datasets.json`. The default split proportions are 70% train, 20% validation, and 10% test. The command-line default seed is 42; the main repeated-seed study uses 42, 101, 202, 303, and 404; scaled anchor fractions are specified per dataset; the default fingerprint is Morgan radius 2 with 2048 bits; and the default balanced-kNN uses `k=5` and balance weight 2.0. These are configurable, not universal constants.
 
 For classification, stratified anchor selection uses the configured stratification label. For regression, it bins the configured target into quantiles. Stratification applies to anchor selection; it does not guarantee that every final split exactly matches the source target distribution.
 
@@ -29,6 +31,8 @@ conda activate datasail-scale
 ```
 
 The registry currently includes BACE, BBBP, Tox21, HIV, QM9, PCBA, MUV, ESOL, FreeSolv, and Lipophilicity. Dataset paths, columns, task types, and anchor fractions are defined in `experiments/config/datasets.json`.
+
+The core splitting and fingerprint-analysis workflow uses the `datasail-scale` Conda environment. The D-MPNN extension uses a separate `.venv-dmpnn` environment with Chemprop, PyTorch, and the dependencies in `requirements-dmpnn.txt`. Do not describe the D-MPNN runs as having been executed in the core Conda environment.
 
 Downloaders are in `experiments/dataset_download/`. For example:
 
@@ -74,9 +78,23 @@ python experiments/pipelines/full_dataSAIL.py bace --n-jobs 1
 
 The full pipeline has a default 12-hour DataSAIL time limit; adjust `--max-sec` only when appropriate for the machine or scheduler. A timeout or resource failure is a run status to record.
 
+### Reproduce the five-seed comparison
+
+The main repeated-seed study uses seeds 42, 101, 202, 303, and 404 for Random, scaled-random-anchor, and scaled-stratified-anchor splitting. Run the matched sweep with:
+
+```bash
+python experiments/analysis/run_seed_sweep.py \
+  --seeds 42 101 202 303 404 \
+  --n-jobs 1
+```
+
+The sweep writes each replicate to a seed-specific directory and refuses to overwrite an existing replicate. Full DataSAIL is excluded from this sweep because it is represented by one reference run per available dataset rather than five independent replicates.
+
 ## Run analyses
 
-After the split files exist, run the seven current analyses from the repository root:
+The original analysis scripts generate working tables under results/analysis/unified/. The current thesis evidence additionally uses multi-seed runtime and quality summaries, robustness analyses, a corrected predictive-quality audit, D-MPNN evaluation, table reconciliation, and unified figure generation.
+
+The core analysis commands are:
 
 ```bash
 python experiments/analysis/runtime_comparision.py
@@ -90,7 +108,16 @@ python experiments/analysis/compute_pairwise_similarity_preservation.py --n-jobs
 
 By default, analyses consider all configured datasets and methods and record missing split files as missing. Options such as `--datasets`, `--methods`, `--pairs`, `--query-n`, `--train-cap`, and `--threshold` allow narrower or sensitivity analyses; check `--help` for each script.
 
-The analyses write tables under `results/analysis/unified/`. Per-dataset ML metrics are stored in files such as `bace_predictive_metrics.csv`; metadata files record the evaluated splits and settings. Split files and run metadata are under `results/experiments/unified/splits/<dataset>/<method>/`.
+The principal extended analysis entry points are:
+
+- runtime_multiseed.py for repeated-seed and Full DataSAIL runtime summaries
+- quality_metrics_multiseed.py for distribution and anchor-quality metrics
+- robustness_snapshot.py for leakage-threshold and structural-overlap analyses
+- predictive_quality_audit_k5.py for corrected five-seed predictive comparisons
+- run_dmpnn_k5.py and summarize_dmpnn_k5.py for the molecular graph-model extension
+- reconcile_selected_tables.py for cross-table consistency checks
+
+The analysis scripts write working outputs under `results/analysis/unified/`. These generated results are excluded from Git and should be regenerated locally from the recorded split outputs and metadata.
 
 ### Runtime definitions
 
@@ -108,19 +135,29 @@ These are measures of structural proximity across splits, not direct evidence of
 
 ### Predictive evaluation
 
-`ml_evaluation_extended.py` evaluates a fixed fingerprint-based baseline: SGD classification for classification tasks and Ridge regression for regression tasks. It writes per-task metrics and status fields. MCC is applicable to classification, not regression; regression results use MAE, RMSE, and R². For sparse multi-task datasets such as PCBA and MUV, interpret accuracy alongside PR-AUC, MCC, and label prevalence.
+The current predictive evidence has two model families:
 
-A predictive score is affected by the difficulty and composition of each test split. Lower scores on a structurally separated split do not by themselves indicate a defective splitter. Compare predictive metrics with split sizes, target distributions, and structural-similarity estimates. Current single-seed results are exploratory; repeat seeds and report variability before drawing general conclusions.
+1. `ml_evaluation_extended.py` provides the fixed Morgan-fingerprint baseline: SGD classification for classification tasks and Ridge regression for regression tasks. The provenance snapshot contains five-seed comparisons across all ten datasets.
+2. The D-MPNN extension provides a molecular graph-model cross-check on BACE, HIV, Tox21, MUV, ESOL, and QM9. It uses the same five saved split seeds for Random and both scaled strategies, validation-based checkpoint selection, and one fixed model-initialization seed. It is not a tuned model benchmark. Full-DataSAIL D-MPNN results are single-run references for BACE, HIV, Tox21, and ESOL; MUV and QM9 do not have a D-MPNN Full baseline, and PCBA was not run with D-MPNN.
+
+MCC is applicable to classification, not regression; regression results use MAE, RMSE, and R². For sparse multi-task datasets such as PCBA and MUV, interpret accuracy alongside PR-AUC, MCC, label prevalence, and the number of tasks with both classes represented.
+
+A predictive score is affected by the difficulty and composition of each test split. Lower scores on a structurally separated split do not by themselves indicate a defective splitter. Compare predictive metrics with split sizes, target distributions, structural-similarity estimates, and uncertainty across split seeds. The current provenance results do not contain five-seed Random Forest or Logistic Regression comparisons; public summaries should name the evaluated SGD/Ridge and D-MPNN models instead.
+
 
 ## Current result coverage and limitations
 
-The unified results currently contain full DataSAIL splits for BACE, BBBP, Tox21, ESOL, FreeSolv, and Lipophilicity. Unified full splits for HIV, QM9, MUV, and PCBA are not currently present. A prior HIV full-DataSAIL runtime log records 1,899 seconds (about 32 minutes), but its DataSAIL output is in the legacy layout and has not been normalized into the unified split directory. A roughly half-day QM9 full-run duration has been reported, but no corresponding unified split and run metadata are present here. Treat both as context until their logs, input versions, and outputs are verified and recorded in the unified format. PCBA full DataSAIL is considered infeasible in the current project plan.
+The selected November 2026 evidence contains five-seed results for Random, scaled-random-anchor, and scaled-stratified-anchor splitting across all ten configured datasets. It also contains integrity-checked, single-run Full DataSAIL references for BACE, BBBP, Tox21, HIV, QM9, MUV, ESOL, FreeSolv, and Lipophilicity. PCBA remains the only dataset without a Full DataSAIL result.
 
-The current scaled runs show that the DataSAIL anchor stage can be a small fraction of end-to-end time on larger datasets; fingerprint generation and nearest-neighbor assignment also contribute substantially. Therefore, do not present DataSAIL-only runtime as the total cost of scaled splitting. Full DataSAIL comparisons on the largest datasets remain incomplete until the planned HPC jobs are completed or documented as infeasible.
+The largest observed end-to-end Full-versus-scaled runtime difference occurs on QM9. The single Full DataSAIL run took 12,979.8 seconds, compared with a five-seed mean of 1,493.7 seconds for scaled-random DataSAIL—an 8.7× comparison. The corresponding DataSAIL-stage difference is considerably larger because the scaled pipeline still performs full-dataset fingerprinting, nearest-neighbour assignment, validation, and output preparation outside the anchor-only DataSAIL call. Runtime summaries must therefore distinguish DataSAIL-stage time from end-to-end pipeline time and identify comparisons between single Full runs and five-seed scaled means.
 
-QM9's current regression results include extremely poor R² for target `A` on some splits. That target dominates a macro average across QM9 properties and makes a single aggregate R² plot hard to interpret.
+Scaled-random reduced the sampled fraction of test molecules with a training neighbour above the selected Tanimoto threshold across all ten datasets relative to Random. Scaffold overlap provides a separate diagnostic: on BACE, the mean fraction of test molecules sharing a scaffold with training fell from 65.6% under Random to 2.45% under scaled-random. These results apply to the stored sampling and overlap definitions and should not be interpreted as proof of zero leakage under every criterion.
+
+QM9 contains 19 heterogeneous regression targets. Target `A` is unstable on some splits and can dominate pooled averages, so QM9 predictive performance should be reported per target rather than as a single unqualified aggregate. More generally, predictive results measure how the evaluated models respond to each split; they are complementary to, but not substitutes for, direct structural-similarity and scaffold-overlap diagnostics.
+
 ## Results organization and provenance
 
-`results/analysis/unified/` is the current analysis output. `results/analysis/Preliminary/` contains older exploratory outputs. Other archived scripts and historical result layouts may use different schemas, paths, seeds, and timing definitions; do not combine them with unified outputs without checking provenance.
 
-Each new run writes metadata including its source-data hash, seed, parameters, package versions, split counts, runtimes, and Git revision/dirty status. 
+`results/analysis/unified/` contains generated working outputs and is excluded from Git. The November 2026 evidence selection is used for the current thesis, CV, portfolio, and repository summaries. Historical and exploratory outputs must not be combined with that selection without checking their methods, seeds, schemas, source hashes, and runtime definitions.
+
+Run metadata records the source-data hash, seed, parameters, package versions, split counts, runtime components, Git revision and worktree status where available. Full DataSAIL results are single-run references; uncertainty across five split seeds applies only to Random and the two scaled methods.
