@@ -238,3 +238,6 @@ logs/
 # Generated Python cache files
 __pycache__/
 .venv-dmpnn/
+.Rhistory
+.RData
+.Rproj.user/
