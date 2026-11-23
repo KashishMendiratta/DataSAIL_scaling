@@ -285,16 +285,25 @@ def main() -> None:
 
     anchors = pd.DataFrame(anchor_rows)
     anchors.to_csv(output_dir / "anchor_similarity_preservation_raw.csv", index=False)
-    anchor_summary = anchors.groupby(["dataset", "method"], dropna=False).agg(
-        mean_absolute_difference=("absolute_difference", "mean"),
-        sd_absolute_difference=("absolute_difference", "std"),
-        n_seeds=("seed", "nunique"), mean_source_similarity=("source_mean_similarity", "mean"),
-        mean_anchor_similarity=("anchor_mean_similarity", "mean")).reset_index()
-    anchor_summary.to_csv(output_dir / "anchor_similarity_preservation_summary.csv", index=False)
-    anchor_contrasts = paired_summary(anchors, ["dataset"], "absolute_difference",
-                                      "datasail_scaled_stratified", "datasail_scaled_random",
-                                      "stratified - scaled_random")
-    pd.DataFrame(anchor_contrasts).to_csv(output_dir / "anchor_similarity_preservation_paired_contrasts.csv", index=False)
+    if anchors.empty:
+        pd.DataFrame(columns=[
+            "dataset", "method", "mean_absolute_difference", "sd_absolute_difference",
+            "n_seeds", "mean_source_similarity", "mean_anchor_similarity",
+        ]).to_csv(output_dir / "anchor_similarity_preservation_summary.csv", index=False)
+        pd.DataFrame().to_csv(
+            output_dir / "anchor_similarity_preservation_paired_contrasts.csv", index=False)
+    else:
+        anchor_summary = anchors.groupby(["dataset", "method"], dropna=False).agg(
+            mean_absolute_difference=("absolute_difference", "mean"),
+            sd_absolute_difference=("absolute_difference", "std"),
+            n_seeds=("seed", "nunique"), mean_source_similarity=("source_mean_similarity", "mean"),
+            mean_anchor_similarity=("anchor_mean_similarity", "mean")).reset_index()
+        anchor_summary.to_csv(output_dir / "anchor_similarity_preservation_summary.csv", index=False)
+        anchor_contrasts = paired_summary(anchors, ["dataset"], "absolute_difference",
+                                          "datasail_scaled_stratified", "datasail_scaled_random",
+                                          "stratified - scaled_random")
+        pd.DataFrame(anchor_contrasts).to_csv(
+            output_dir / "anchor_similarity_preservation_paired_contrasts.csv", index=False)
     print(f"Saved multi-seed quality tables to {output_dir}", flush=True)
 
 

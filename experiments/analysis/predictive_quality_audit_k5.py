@@ -18,7 +18,8 @@ sys.path.insert(0, str(ROOT))
 from src.analysis_common import read_splits, target_columns, smiles_column  # noqa: E402
 from src.pipeline_engine import CONFIG, load_dataset  # noqa: E402
 
-OUT = ROOT / "results/analysis/unified/predictive_quality_audit_k5"
+OUT = ROOT / "results/analysis/provenance_20261120/predictive_quality_audit_k5"
+PREDICTIVE_ROOT = ROOT / "results/analysis/provenance_20261120/predictive_fingerprint/by_dataset"
 SEEDS = (42, 101, 202, 303, 404)
 REPEATED_METHODS = ("random", "datasail_scaled_random", "datasail_scaled_stratified")
 CLASSIFICATION_METRICS = ("roc_auc", "pr_auc", "accuracy", "f1", "mcc")
@@ -28,16 +29,16 @@ N_BINS = 10
 PSEUDOCOUNT = 0.5
 
 
-def _load_predictive_metrics() -> tuple[pd.DataFrame, pd.DataFrame]:
-    audit_path = ROOT / "results/analysis/unified/thesis_snapshot_20261114/predictive_metrics_file_audit.csv"
-    audit = pd.read_csv(audit_path)
+def _load_predictive_metrics() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     parts = []
-    for row in audit.itertuples(index=False):
-        path = ROOT / row.path
+    repeated_paths = sorted(PREDICTIVE_ROOT.glob("*/seed_*/*_predictive_metrics_seed_*.csv"))
+    for path in repeated_paths:
         frame = pd.read_csv(path)
-        frame["dataset"] = row.dataset
-        frame["seed"] = int(row.seed)
+        frame["dataset"] = path.parents[1].name
+        frame["seed"] = int(path.parent.name.removeprefix("seed_"))
         parts.append(frame)
+    if len(repeated_paths) != 50:
+        raise ValueError(f"Expected 50 clean repeated predictive files; found {len(repeated_paths)}")
     raw = pd.concat(parts, ignore_index=True)
     if "method" not in raw and "split_type" in raw:
         raw = raw.rename(columns={"split_type": "method"})
@@ -49,12 +50,25 @@ def _load_predictive_metrics() -> tuple[pd.DataFrame, pd.DataFrame]:
     corrected = int((invalid_muv_pr & raw.pr_auc.notna()).sum())
     raw.loc[invalid_muv_pr, "pr_auc"] = np.nan
     audit_out = pd.DataFrame([{
-        "source_files": len(audit),
+        "source_root": str(PREDICTIVE_ROOT.relative_to(ROOT)),
+        "source_files": len(repeated_paths),
         "source_rows": len(raw),
         "one_class_muv_rows_pr_auc_set_unavailable": corrected,
         "note": "MUV PR-AUC is unavailable when the observed test labels contain only one class.",
     }])
-    return raw, audit_out
+    full_parts = []
+    full_paths = sorted(PREDICTIVE_ROOT.glob("*/full/*_predictive_metrics.csv"))
+    for path in full_paths:
+        frame = pd.read_csv(path)
+        frame["dataset"] = path.parents[1].name
+        frame["seed"] = "full_single_run"
+        full_parts.append(frame)
+    if len(full_paths) != 9:
+        raise ValueError(f"Expected 9 clean Full DataSAIL predictive files; found {len(full_paths)}")
+    full = pd.concat(full_parts, ignore_index=True)
+    if "method" not in full and "split_type" in full:
+        full = full.rename(columns={"split_type": "method"})
+    return raw, full, audit_out
 
 
 def _paired_metric_summary(raw: pd.DataFrame) -> pd.DataFrame:
@@ -129,8 +143,7 @@ def _active_neighbor_audit() -> tuple[pd.DataFrame, pd.DataFrame]:
         fp_by_id = _fingerprints_by_id(dataset, source)
         targets = target_columns(dataset, source)
         runs = [(method, f"seed_{seed}", seed) for method in REPEATED_METHODS for seed in SEEDS]
-        if dataset == "hiv":
-            runs.append(("datasail_full", "", "full_single_run"))
+        runs.append(("datasail_full", "", "full_single_run"))
 
         for method, run_id, seed in runs:
             splits = read_splits(dataset, method, run_id=run_id or None)
@@ -261,17 +274,12 @@ def _target_distribution_record(dataset: str, method: str, seed: str | int, targ
 def _regression_distribution_audit() -> tuple[pd.DataFrame, pd.DataFrame]:
     target_rows = []
     pca_rows = []
-    methods_by_dataset = {
-        dataset: list(REPEATED_METHODS) + (["datasail_full"] if dataset != "qm9" else [])
-        for dataset in REGRESSION_DATASETS
-    }
     for dataset in REGRESSION_DATASETS:
         source, _, _ = load_dataset(dataset)
         targets = target_columns(dataset, source)
         target_subset = list(QM9_REPRESENTATIVE_TARGETS) if dataset == "qm9" else targets
         runs = [(method, f"seed_{seed}", seed) for method in REPEATED_METHODS for seed in SEEDS]
-        if dataset != "qm9":
-            runs.append(("datasail_full", "", "full_single_run"))
+        runs.append(("datasail_full", "", "full_single_run"))
 
         for method, run_id, seed in runs:
             splits = read_splits(dataset, method, run_id=run_id or None)
@@ -314,8 +322,9 @@ def _regression_distribution_audit() -> tuple[pd.DataFrame, pd.DataFrame]:
 
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    raw, correction_audit = _load_predictive_metrics()
+    raw, full_reference, correction_audit = _load_predictive_metrics()
     raw.to_csv(OUT / "predictive_metrics_seed_raw_corrected.csv", index=False)
+    full_reference.to_csv(OUT / "predictive_full_reference.csv", index=False)
     correction_audit.to_csv(OUT / "muv_pr_auc_correction_audit.csv", index=False)
     _paired_metric_summary(raw).to_csv(OUT / "predictive_paired_five_seed_summary_corrected.csv", index=False)
 
@@ -338,11 +347,14 @@ def main() -> None:
         "qm9_pca_method": "StandardScaler and 3-component PCA fit on complete training targets only; validation/test transformed with training fit",
         "pca_bin_count": N_BINS,
         "pca_pseudocount_per_bin": PSEUDOCOUNT,
-        "full_datasail_included_for_regression": ["esol", "freesolv", "lipophilicity"],
+        "predictive_source": str(PREDICTIVE_ROOT.relative_to(ROOT)),
+        "full_datasail_predictive_reference_datasets": sorted(full_reference.dataset.unique().tolist()),
+        "full_datasail_included_for_regression": list(REGRESSION_DATASETS),
         "full_datasail_included_for_hiv": True,
-        "full_datasail_included_for_muv": False,
+        "full_datasail_included_for_muv": True,
         "outputs": [
             "predictive_metrics_seed_raw_corrected.csv",
+            "predictive_full_reference.csv",
             "predictive_paired_five_seed_summary_corrected.csv",
             "muv_pr_auc_correction_audit.csv",
             "active_test_nearest_neighbor_queries.csv",
