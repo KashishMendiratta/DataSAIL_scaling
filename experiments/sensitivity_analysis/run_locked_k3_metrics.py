@@ -25,7 +25,7 @@ sys.path.insert(0, str(ROOT / "experiments/analysis"))
 from knn_order_sensitivity import _assign_in_order, _load_anchor_labels  # noqa: E402
 from src.pipeline_engine import CONFIG, fingerprint_matrix, load_dataset  # noqa: E402
 from src.analysis_common import fingerprint_matrix as analysis_fingerprints, smiles_column  # noqa: E402
-from leakage_analaysis import sampled_mean  # noqa: E402
+from leakage_analysis import sampled_mean  # noqa: E402
 from ml_evaluation_extended import (  # noqa: E402
     evaluate_muv,
     evaluate_pcba,

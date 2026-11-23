@@ -97,8 +97,8 @@ The original analysis scripts generate working tables under results/analysis/uni
 The core analysis commands are:
 
 ```bash
-python experiments/analysis/runtime_comparision.py
-python experiments/analysis/leakage_analaysis.py --n-jobs 1
+python experiments/analysis/runtime_comparison.py
+python experiments/analysis/leakage_analysis.py --n-jobs 1
 python experiments/analysis/nn_leakage.py --n-jobs 1
 python experiments/analysis/ml_evaluation_extended.py --n-jobs 1
 python experiments/analysis/compute_distribution_ratio_error.py
@@ -121,13 +121,13 @@ The analysis scripts write working outputs under `results/analysis/unified/`. Th
 
 ### Runtime definitions
 
-For scaled and full DataSAIL runs, `total_seconds` is end-to-end wall time, including data loading and validation, fingerprint generation where applicable, DataSAIL, assignment, and output preparation. `datasail_seconds` measures only the DataSAIL call. The random baseline has end-to-end time but no DataSAIL stage. `runtime_comparision.py` reads these values into `runtime_comparison.csv`.
+For scaled and full DataSAIL runs, `total_seconds` is end-to-end wall time, including data loading and validation, fingerprint generation where applicable, DataSAIL, assignment, and output preparation. `datasail_seconds` measures only the DataSAIL call. The random baseline has end-to-end time but no DataSAIL stage. `runtime_comparison.py` reads these values into `runtime_comparison.csv`.
 
 Report end-to-end time when comparing user-visible computational cost. Runtime depends on hardware and software versions; record the machine, environment, code revision, seed, and settings.
 
 ### Similarity and leakage interpretation
 
-`leakage_analaysis.py` estimates the mean Tanimoto similarity across sampled train-test molecule pairs. Its default is 100,000 sampled pairs. `nn_leakage.py` estimates each sampled test molecule's maximum similarity to training molecules; by default it samples up to 500 test molecules and caps the training set at 10,000 molecules, using a 0.7 threshold for its high-similarity fraction.
+`leakage_analysis.py` estimates the mean Tanimoto similarity across sampled train-test molecule pairs. Its default is 100,000 sampled pairs. `nn_leakage.py` estimates each sampled test molecule's maximum similarity to training molecules; by default it samples up to 500 test molecules and caps the training set at 10,000 molecules, using a 0.7 threshold for its high-similarity fraction.
 
 These are measures of structural proximity across splits, not direct evidence of target-label leakage. For larger datasets they are sampled estimates, not exhaustive comparisons.
 

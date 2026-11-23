@@ -23,8 +23,8 @@ Each run writes `train.csv`, `val.csv`, `test.csv`, and `run_metadata.json` belo
 
 Each script accepts optional `--datasets` and `--methods` arguments. With no dataset list, it processes every registered dataset. It records missing split sets explicitly rather than substituting outputs from the historical pipeline.
 
-- `runtime_comparision.py`: end-to-end and DataSAIL-stage timing from run metadata. The recorded scope is reported with each row.
-- `leakage_analaysis.py`: sampled mean train-test Tanimoto similarity. This is a global cross-partition similarity summary, not the nearest-neighbour threshold statistic.
+- `runtime_comparison.py`: end-to-end and DataSAIL-stage timing from run metadata. The recorded scope is reported with each row.
+- `leakage_analysis.py`: sampled mean train-test Tanimoto similarity. This is a global cross-partition similarity summary, not the nearest-neighbour threshold statistic.
 - `nn_leakage.py`: sampled test-to-train maximum Tanimoto similarity and fraction above the selected threshold.
 - `ml_evaluation_extended.py`: regression and classification evaluation, including multitask assays with missing labels. It reports per-target/per-assay results.
 - `compute_distribution_ratio_error.py`: per-target class-frequency error; continuous regression targets are compared through source-wide quantile bins.
@@ -35,8 +35,8 @@ Example analysis commands:
 
 ```bash
 python experiments/analysis/ml_evaluation_extended.py
-python experiments/analysis/runtime_comparision.py
-python experiments/analysis/leakage_analaysis.py --pairs 100000
+python experiments/analysis/runtime_comparison.py
+python experiments/analysis/leakage_analysis.py --pairs 100000
 python experiments/analysis/nn_leakage.py --query-n 500 --train-cap 10000 --threshold 0.7
 python experiments/analysis/compute_distribution_ratio_error.py
 python experiments/analysis/compute_kl_divergence.py
