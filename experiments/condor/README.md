@@ -116,3 +116,20 @@ experiments/condor/submit_pinned.sh \
 This exhaustively validates observation and measurement outcomes, endpoint
 atomicity, exact cross-split maxima for the selected ligand/protein metrics,
 retained affinity and degree distributions, and retained-graph components.
+
+## BindingDB leakage distributions
+
+After C1e, C1f, and C2 are accepted, compute their nearest-neighbour leakage
+distributions:
+
+```bash
+experiments/condor/submit_pinned.sh \
+  experiments/condor/bindingdb_leakage.sub \
+  repo_dir="$HOME/DataSAIL_scaling_repro"
+```
+
+Protein query-to-training comparisons are exhaustive. Ligand comparisons use a
+deterministic seed-42 sample of 5,000 queries against 50,000 training chemicals
+and are repeated with non-chiral and chirality-aware Morgan fingerprints. Raw
+nearest-neighbour records and summary tables are stored under
+`results/analysis/bindingdb/seed_42/leakage/`.
