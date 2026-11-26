@@ -133,3 +133,20 @@ deterministic seed-42 sample of 5,000 queries against 50,000 training chemicals
 and are repeated with non-chiral and chirality-aware Morgan fingerprints. Raw
 nearest-neighbour records and summary tables are stored under
 `results/analysis/bindingdb/seed_42/leakage/`.
+
+## BindingDB bounded predictive baseline
+
+After leakage distributions pass, submit the interaction-aware CPU baseline:
+
+```bash
+experiments/condor/submit_pinned.sh \
+  experiments/condor/bindingdb_predictive_baseline.sub \
+  repo_dir="$HOME/DataSAIL_scaling_repro"
+```
+
+The gate trains separate C1e/C1f/C2 Huber-SGD regressors on frozen caps of
+100,000 exact-affinity training observations and evaluates 25,000 validation and
+25,000 test observations. Features combine chiral Morgan fingerprints, hashed
+protein 3-mers, and affinity-type indicators. Metrics are reported overall and
+per Ki/Kd/IC50/EC50. Inequality-censored measurements are excluded from this
+point-regression baseline by design.
