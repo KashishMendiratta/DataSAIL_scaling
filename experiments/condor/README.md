@@ -15,3 +15,22 @@ For submit descriptions with additional required macros, pass them after the sub
 Every Condor submit description exports `DATASAIL_CONTAINER_REF` and the Condor job ID. The split pipeline stores the image reference in `run_metadata.json`. Jobs launched through `run_job.sh` also write a per-job sidecar under `results/provenance/condor_jobs/`, including the Git commit and dirty state, input dataset hashes, package versions, worker hostname, parameters, and exit status. Preserve those sidecars together with the split/analysis outputs and Condor event, stdout, and stderr logs when transferring results locally.
 
 A digest pins software image contents. It does not pin the Condor worker hardware or restore provenance for historical runs.
+
+## BindingDB preparation
+
+The full frozen BindingDB release is prepared on Condor after the 10k, 100k,
+and 500k local gates pass. The archive must already exist at
+`data/raw/bindingdb/BindingDB_All_202611_tsv.zip` on the mounted repository.
+
+From a clean, committed worktree on the submit host:
+
+```bash
+experiments/condor/submit_pinned.sh \
+  experiments/condor/bindingdb_prepare.sub \
+  repo_dir="$HOME/DataSAIL_scaling" release=202611 chunk_size=10000
+```
+
+The job requests 1 CPU, 4 GB memory, and 8 GB disk. Its preparation manifest
+records source accounting, typed affinity counts, stage runtimes, and peak
+memory. Do not start split generation unless that manifest reports
+`source_accounting_valid: true`.

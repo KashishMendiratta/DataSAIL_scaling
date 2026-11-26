@@ -1,0 +1,17 @@
+universe = docker
+docker_image = $(image)
+environment = "DATASAIL_CONTAINER_REF=$(image) DATASAIL_GIT_COMMIT=$(git_commit) DATASAIL_GIT_WORKTREE_DIRTY=$(git_dirty) CONDOR_JOB_ID=$(ClusterId).$(ProcId)"
+executable = experiments/condor/run_bindingdb_preparation.sh
+arguments = $(repo_dir) $(release) $(chunk_size)
+initialdir = $(repo_dir)
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
++WantGPUHomeMounted = true
+requirements = (UidDomain == "cs.uni-saarland.de")
+request_cpus = 1
+request_memory = 4GB
+request_disk = 8GB
+log = $(repo_dir)/logs/condor/bindingdb.prepare.$(ClusterId).log
+output = $(repo_dir)/logs/condor/bindingdb.prepare.$(ClusterId).$(ProcId).out
+error = $(repo_dir)/logs/condor/bindingdb.prepare.$(ClusterId).$(ProcId).err
+queue 1
