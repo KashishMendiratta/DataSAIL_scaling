@@ -104,3 +104,15 @@ anchors. Every mismatched-endpoint observation is retained in the accounting
 table with an explicit exclusion reason. The candidate hard-fails below 80%
 retention, beyond a five-point retained-ratio deviation, or on any atomicity,
 duplicate, or retained cross-endpoint conflict.
+
+After the C2 candidate passes, submit its acceptance validator:
+
+```bash
+experiments/condor/submit_pinned.sh \
+  experiments/condor/bindingdb_c2_validation.sub \
+  repo_dir="$HOME/DataSAIL_scaling_repro"
+```
+
+This exhaustively validates observation and measurement outcomes, endpoint
+atomicity, exact cross-split maxima for the selected ligand/protein metrics,
+retained affinity and degree distributions, and retained-graph components.
