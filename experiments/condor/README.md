@@ -76,3 +76,15 @@ DataSAIL Python API, so it does not depend on MMseqs or DIAMOND being installed.
 The candidate uses approximately 526 anchors, 20 protein clusters, and fails if
 any interaction-ratio deviation exceeds five percentage points. It remains
 pending until the separate C1f similarity and graph validator passes.
+
+After the C1f candidate passes, submit its acceptance validator:
+
+```bash
+experiments/condor/submit_pinned.sh \
+  experiments/condor/bindingdb_c1f_validation.sub \
+  repo_dir="$HOME/DataSAIL_scaling_repro"
+```
+
+The validator exhaustively computes the hashed 3-mer cosine maximum across all
+cross-split target pairs and audits source accounting, regime identity, affinity
+and degree distributions, and the complete interaction graph.
