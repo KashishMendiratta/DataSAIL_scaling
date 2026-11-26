@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Mapping
+from typing import Mapping, Sequence
+
+import numpy as np
 
 
 @dataclass(frozen=True)
@@ -21,7 +23,13 @@ def assignments_from_result(result, technique: str, run: int = 0) -> DataSAILAss
     normalized = []
     for label, part in zip(("e", "f", "interaction"), result):
         if part is None:
-            raise ValueError(f"DataSAIL returned no {label}-assignment dictionary")
+            required = (label == "e" and technique.endswith("e")) or (
+                label == "f" and technique.endswith("f")
+            )
+            if required:
+                raise ValueError(f"DataSAIL returned no {label}-assignment dictionary")
+            normalized.append({})
+            continue
         runs = part.get(technique, [])
         if not runs:
             normalized.append({})
@@ -66,3 +74,35 @@ def run_c1e(
         verbose="W",
     )
     return assignments_from_result(result, "C1e")
+
+
+def run_c1f(
+    target_sequences: Mapping[str, str],
+    target_weights: Mapping[str, float],
+    similarity_names: Sequence[str],
+    similarity_matrix: np.ndarray,
+    *,
+    splits: Mapping[str, float],
+    clusters: int,
+    max_sec: int,
+    threads: int,
+) -> DataSAILAssignments:
+    """Run C1f with a precomputed protein-similarity matrix."""
+    from datasail.sail import datasail
+
+    names = list(splits)
+    result = datasail(
+        techniques=["C1f"],
+        f_type="P",
+        f_data=dict(target_sequences),
+        f_weights=dict(target_weights),
+        f_sim=(list(similarity_names), np.asarray(similarity_matrix, dtype=float)),
+        f_clusters=clusters,
+        splits=[splits[name] for name in names],
+        names=names,
+        runs=1,
+        max_sec=max_sec,
+        threads=threads,
+        verbose="W",
+    )
+    return assignments_from_result(result, "C1f")

@@ -60,3 +60,19 @@ This stage fails on incomplete entity or source-measurement accounting, dropped
 observations, duplicate leakage, incorrect cold-ligand identity, uncertified
 maximum cross-split similarities, missing affinity strata, or incomplete graph
 statistics. It writes `validation_report.json` beside the C1e candidate.
+
+## BindingDB scaled C1f
+
+After C1e is accepted, submit the full cold-target candidate:
+
+```bash
+experiments/condor/submit_pinned.sh \
+  experiments/condor/bindingdb_c1f.sub \
+  repo_dir="$HOME/DataSAIL_scaling_repro" seed=42 anchor_ratio=0.05 threads=1
+```
+
+The protein path supplies a precomputed hashed 3-mer cosine matrix through the
+DataSAIL Python API, so it does not depend on MMseqs or DIAMOND being installed.
+The candidate uses approximately 526 anchors, 20 protein clusters, and fails if
+any interaction-ratio deviation exceeds five percentage points. It remains
+pending until the separate C1f similarity and graph validator passes.

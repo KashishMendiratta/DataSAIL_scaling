@@ -1,0 +1,17 @@
+universe = docker
+docker_image = $(image)
+environment = "DATASAIL_CONTAINER_REF=$(image) DATASAIL_GIT_COMMIT=$(git_commit) DATASAIL_GIT_WORKTREE_DIRTY=$(git_dirty) CONDOR_JOB_ID=$(ClusterId).$(ProcId) MPLCONFIGDIR=/tmp/matplotlib LOKY_MAX_CPU_COUNT=$(threads)"
+executable = experiments/condor/run_bindingdb_c1f.sh
+arguments = $(repo_dir) $(seed) $(anchor_ratio) $(threads)
+initialdir = $(repo_dir)
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
++WantGPUHomeMounted = true
+requirements = (UidDomain == "cs.uni-saarland.de")
+request_cpus = $(threads)
+request_memory = 8GB
+request_disk = 8GB
+log = $(repo_dir)/logs/condor/bindingdb.c1f.$(ClusterId).log
+output = $(repo_dir)/logs/condor/bindingdb.c1f.$(ClusterId).$(ProcId).out
+error = $(repo_dir)/logs/condor/bindingdb.c1f.$(ClusterId).$(ProcId).err
+queue 1

@@ -24,6 +24,11 @@ class DataSAILAdapterTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "must return"):
             assignments_from_result({"C1e": []}, "C1e")
 
+    def test_extracts_c1f_target_assignments(self):
+        result = (None, {"C1f": [{"t1": "test"}]}, None)
+        assignments = assignments_from_result(result, "C1f")
+        self.assertEqual(assignments.f_splits, {"t1": "test"})
+
 
 if __name__ == "__main__":
     unittest.main()
