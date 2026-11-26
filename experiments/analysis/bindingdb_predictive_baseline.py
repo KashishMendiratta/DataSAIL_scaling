@@ -35,7 +35,7 @@ def peak_rss_mb() -> float:
     return (value if sys.platform == "darwin" else value * 1024) / (1024 * 1024)
 
 
-def query_for(regime: str) -> str:
+def query_for(regime: str, seed: int) -> str:
     if regime == "C1e":
         join = "JOIN splitdb.assignments a USING(ligand_id)"
         split = "a.split"
@@ -52,7 +52,10 @@ def query_for(regime: str) -> str:
                FROM interactions i JOIN ligands l USING(ligand_id)
                JOIN targets t USING(target_id) {join}
                WHERE {split}=? AND i.affinity_relation='='
-               ORDER BY i.observation_id LIMIT ?"""
+               ORDER BY ((i.source_row * 1103515245 +
+                          CASE i.affinity_type WHEN 'Ki' THEN 101 WHEN 'Kd' THEN 211
+                               WHEN 'IC50' THEN 307 ELSE 401 END + {int(seed)}) % 2147483647),
+                        i.observation_id LIMIT ?"""
 
 
 class FeatureEncoder:
@@ -88,8 +91,8 @@ class FeatureEncoder:
         )
 
 
-def rows_for(connection, regime: str, split: str, cap: int) -> list[tuple]:
-    return connection.execute(query_for(regime), (split, cap)).fetchall()
+def rows_for(connection, regime: str, split: str, cap: int, seed: int) -> list[tuple]:
+    return connection.execute(query_for(regime, seed), (split, cap)).fetchall()
 
 
 def metrics(truth: np.ndarray, prediction: np.ndarray) -> dict:
@@ -127,15 +130,20 @@ def run_regime(
     started = time.perf_counter(); encoder = FeatureEncoder()
     with sqlite3.connect(prepared) as connection:
         connection.execute("ATTACH DATABASE ? AS splitdb", (str(split_database.resolve()),))
-        populations = {}
+        populations, populations_by_type = {}, {}
         for split in ("train", "val", "test"):
+            base_query = query_for(regime, seed).split("ORDER BY", 1)[0]
             populations[split] = connection.execute(
-                f"SELECT COUNT(*) FROM ({query_for(regime).replace('LIMIT ?', '')})",
+                f"SELECT COUNT(*) FROM ({base_query})",
                 (split,),
             ).fetchone()[0]
-        train_rows = rows_for(connection, regime, "train", train_cap)
-        val_rows = rows_for(connection, regime, "val", val_cap)
-        test_rows = rows_for(connection, regime, "test", test_cap)
+            populations_by_type[split] = dict(connection.execute(
+                f"SELECT affinity_type, COUNT(*) FROM ({base_query}) GROUP BY affinity_type",
+                (split,),
+            ).fetchall())
+        train_rows = rows_for(connection, regime, "train", train_cap, seed)
+        val_rows = rows_for(connection, regime, "val", val_cap, seed + 1)
+        test_rows = rows_for(connection, regime, "test", test_cap, seed + 2)
     y_train = np.asarray([row[4] for row in train_rows], dtype=float)
     y_mean, y_scale = float(y_train.mean()), float(y_train.std())
     model = SGDRegressor(
@@ -166,7 +174,12 @@ def run_regime(
     joblib.dump({"model": model, "y_mean": y_mean, "y_scale": y_scale}, output_dir / f"{regime}_model.joblib")
     return {
         "regime": regime, "population_exact_affinity_rows": populations,
+        "population_exact_affinity_rows_by_type": populations_by_type,
         "sample_rows": {"train": len(train_rows), "val": len(val_rows), "test": len(test_rows)},
+        "sample_rows_by_type": {
+            split: {kind: sum(row[3] == kind for row in rows) for kind in AFFINITY_TYPES}
+            for split, rows in (("train", train_rows), ("val", val_rows), ("test", test_rows))
+        },
         "epochs": epochs, "training_seconds": training_seconds,
         "evaluation_seconds": evaluation_seconds, "total_seconds": time.perf_counter()-started,
         "metrics": val_metrics + test_metrics,
@@ -202,6 +215,7 @@ def main() -> None:
                      "protein": "normalized hashed 3-mer frequencies 4096 features",
                      "affinity_type": "one-hot"},
         "label_policy": "exact equality affinity observations only",
+        "sampling_policy": "deterministic pseudo-random ordering of source rows with affinity-type salt",
         "seed": args.seed, "caps": {"train": args.train_cap, "val": args.val_cap, "test": args.test_cap},
         "epochs": args.epochs, "batch_size": args.batch_size,
         "runtime_seconds": time.perf_counter()-started, "peak_memory_mb": peak_rss_mb(),
