@@ -118,3 +118,22 @@ runtime, and peak memory.
   8 GB disk. The job consumes the already frozen 202611 archive and retains all
   four typed affinities.
 
+## 2026-11-26 — Full preparation job 77191.0 failed at Python startup
+
+- Condor status: normal termination with exit code 1 after 66 seconds of remote
+  wall time; the Python process itself ran for only a few seconds.
+- Error: `ModuleNotFoundError: No module named 'experiments'` while importing
+  `experiments.dataset_download.download_bindingdb` from
+  `prepare_bindingdb.py`.
+- Cause: the Condor runner launched the preparer by filesystem path. In the
+  clean container, Python placed `experiments/dataset_download` rather than the
+  repository root on its import path. The local Conda shell had masked this
+  packaging assumption.
+- Change: the runner now uses module execution:
+  `python -u -m experiments.dataset_download.prepare_bindingdb`. Module
+  execution places the repository root on the import path and preserves package
+  imports.
+- No output directory or manifest was created. This was not an OOM, disk,
+  parsing, or scientific-method failure; resource requests and the preparation
+  technique remain unchanged for the retry.
+

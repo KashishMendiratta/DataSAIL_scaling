@@ -14,7 +14,7 @@ if [[ ! -f "$archive" ]]; then
   exit 2
 fi
 
-python -u experiments/dataset_download/prepare_bindingdb.py "$archive" \
+python -u -m experiments.dataset_download.prepare_bindingdb "$archive" \
   --member BindingDB_All.tsv \
   --affinity-types Ki Kd IC50 EC50 \
   --chunk-size "$chunk_size" \
