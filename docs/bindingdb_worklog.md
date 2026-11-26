@@ -137,3 +137,115 @@ runtime, and peak memory.
   parsing, or scientific-method failure; resource requests and the preparation
   technique remain unchanged for the retry.
 
+## 2026-11-26 — Full preparation retry 77194.0 passed
+
+- Condor status: completed (`JobStatus=4`) with exit code 0; no signal.
+- Condor remote wall time: 5,291 seconds. Manifest total runtime: 5,283.14
+  seconds, comprising 4,950.47 seconds normalization/staging, 327.94 seconds
+  export, and 1.03 seconds source hashing.
+- Peak process memory: 365.93 MiB. Condor reported 260 MiB memory usage against
+  a 4,096 MiB request. Preparation was not memory constrained.
+- Frozen source: 3,243,660 measurements from BindingDB 202611, SHA-256
+  `470a3c2e4aebe3c493de3e9e46e739592eb8e29b3adafb5189c875442268a0b2`.
+- Retained 3,031,381 source measurements and excluded 212,279; the exact source
+  accounting invariant passed.
+- Emitted 3,036,683 typed observations: 588,828 Ki; 127,299 Kd; 2,060,773
+  IC50; and 259,783 EC50.
+- Normalized 1,357,780 unique ligands and 10,518 unique single-sequence targets.
+- Detected 353,342 duplicate observations for group-preserving split validation.
+- Exclusions: 186,771 multi-chain targets, 19,613 rows without a valid selected
+  affinity, and 5,895 invalid ligand SMILES.
+- Output tables occupy about 179 MiB compressed plus a 1.5 GiB SQLite staging
+  database (apparent size). The manifest is at
+  `data/processed/bindingdb/release_202611_all_affinities/preparation_manifest.json`.
+- Result: the interaction-specific loader phase is complete. No preparation
+  technique change is required before scaled C1e implementation.
+
+## 2026-11-26 — Scaled C1e architecture and 1k pilot passed
+
+- Added a package-return adapter that consumes the three dictionaries returned
+  by `datasail(...)`. The BindingDB path reads `e_splits["C1e"][run]` directly;
+  it does not discover or parse generated DataSAIL TSV files.
+- C1e anchors are sampled across ligand observation-degree deciles. Anchor
+  weights passed to DataSAIL are ligand observation degrees, so the optimizer
+  targets interaction balance rather than equal ligand counts.
+- Remaining ligands use exact Morgan/Tanimoto neighbours of the anchors and a
+  degree-weighted balance update. A `1e-9` similarity baseline was added to
+  resolve all-zero-similarity ties by balance; the original molecular method
+  multiplied zero similarity by its balance term and therefore defaulted every
+  such tie to the first split.
+- C1e target policy is explicit: targets may occur in multiple splits. Requiring
+  one target assignment in C1e would change the regime into a double-cold split.
+- Real pilot input: a seeded 1,000-ligand subset of the prepared 500k source
+  pilot; 100 degree-stratified ligand anchors; seed 42; k=5.
+- DataSAIL solved the weighted anchor problem through its Python API. Total
+  runtime was 11.03 seconds, including 3.99 seconds in DataSAIL; peak memory was
+  315.22 MiB.
+- All 1,000 ligands were assigned. All 2,013 corresponding observations were
+  retained; none were dropped. Interaction ratios were 70.34% train, 20.47%
+  validation, and 9.19% test. Duplicate split conflicts: zero.
+- This proves algorithm feasibility only. C1e is not declared complete until
+  cross-split chemical similarity, protein-similarity applicability, and graph
+  connected-component audits are attached to the final validation gate.
+
+## 2026-11-26 — C1e 10k/500-anchor pilot interrupted for runtime
+
+- Configuration: 10,000 seeded ligands, 5% anchor ratio (500 anchors), 50
+  DataSAIL clusters, exact Tanimoto-to-anchor assignment, one thread.
+- The run produced no stage output or result after approximately nine minutes
+  and was interrupted manually. No manifest was produced, so it did not pass a
+  scale gate.
+- This was a bounded diagnostic interruption, not an OOM or Condor failure.
+- Change: explicit flushed stage markers were added around statistics loading,
+  anchor selection, DataSAIL, remaining-ligand assignment, and audit. The next
+  diagnostic uses 100 anchors to localize the bottleneck before any algorithmic
+  substitution or larger run.
+
+## 2026-11-26 — C1e bottleneck isolated; 10 clusters locked
+
+- The 10,000-ligand diagnostic with 100 anchors and 10 clusters completed in
+  15.35 seconds. Stage times were 3.95 seconds DataSAIL, 3.61 seconds remaining
+  assignment, and 3.52 seconds audit.
+- A controlled repeat restored 500 anchors but retained 10 clusters. It completed
+  in 15.16 seconds, including 4.04 seconds DataSAIL and 4.14 seconds assignment.
+- Therefore, the interrupted runtime was caused by increasing the cluster count
+  from 10 to 50, not by the 500-anchor count or exact neighbour assignment.
+- Technique change: the BindingDB C1e default is locked to 10 DataSAIL clusters,
+  matching the molecular thesis workflow. Cluster-count sensitivity can be a
+  later experiment; it is not allowed to silently vary during the scale ladder.
+- The 500-anchor repeat assigned all 10,000 ligands and retained all 18,479
+  observations. Ratios were 69.90% train, 20.01% validation, and 10.10% test;
+  duplicate split conflicts and dropped observations were both zero.
+
+## 2026-11-26 — C1e 100k pilot exposed canonical-structure leakage
+
+- The 100,000-ligand-ID pilot completed in 57.11 seconds with 312.34 MiB peak
+  memory. It retained 183,468 observations with ratios 69.89% train, 20.03%
+  validation, and 10.08% test; observation-duplicate conflicts were zero.
+- A stricter post-run query found four canonical SMILES assigned to more than
+  one split. BindingDB can map multiple MonomerIDs to the same canonical
+  structure, so MonomerID is not a sufficient cold-ligand splitting unit.
+- The 100k result is diagnostic and fails the canonical chemical-identity gate.
+- Technique change: C1e now aggregates observation degree by canonical SMILES,
+  assigns one stable hash-based chemical ID per canonical structure, splits and
+  extends assignments at that chemical level, then expands the result back to
+  every BindingDB ligand ID. Canonical chemical groups are atomic and a new hard
+  validation rejects any group observed in multiple splits.
+
+## 2026-11-26 — Corrected canonical-chemical C1e gates passed
+
+- The corrected 10,000-chemical run expanded to 10,059 BindingDB ligand IDs and
+  retained 18,329 observations. Runtime was 19.86 seconds; peak memory was
+  309.91 MiB. Ratios were 69.95% train, 19.88% validation, and 10.17% test.
+- The corrected 100,000-chemical run expanded to 100,563 ligand IDs and retained
+  184,664 observations. Runtime was 58.15 seconds; peak memory was 330.94 MiB.
+  Ratios were 69.66% train, 20.06% validation, and 10.28% test.
+- Both corrected runs had zero dropped observations, zero duplicate-observation
+  conflicts, and zero canonical-chemical conflicts.
+- Full-run technique locked: canonical chemical unit; seed 42; 0.1% anchors
+  (approximately 1,350 on the full release); degree-decile anchor sampling;
+  observation-degree DataSAIL weights; k=5; balance weight 2.0; 10 clusters.
+- Added a Condor runner requesting 1 CPU, 8 GB memory, and 8 GB disk. The split
+  manifest is explicitly marked as pending until chemical-similarity, protein-
+  similarity applicability, and connected-component audits pass.
+

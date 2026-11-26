@@ -34,3 +34,16 @@ The job requests 1 CPU, 4 GB memory, and 8 GB disk. Its preparation manifest
 records source accounting, typed affinity counts, stage runtimes, and peak
 memory. Do not start split generation unless that manifest reports
 `source_accounting_valid: true`.
+
+After full preparation passes, submit the first full scaled cold-ligand split:
+
+```bash
+experiments/condor/submit_pinned.sh \
+  experiments/condor/bindingdb_c1e.sub \
+  repo_dir="$HOME/DataSAIL_scaling_repro" seed=42 anchor_ratio=0.001 threads=1
+```
+
+This uses canonical chemical structures as atomic splitting units, approximately
+1,350 degree-stratified anchors, interaction-degree weights, k=5 exact
+Tanimoto-to-anchor assignment, and 10 DataSAIL clusters. Its core assignment
+manifest remains pending until the separate similarity and graph audits pass.
