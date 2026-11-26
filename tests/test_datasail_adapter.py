@@ -29,6 +29,13 @@ class DataSAILAdapterTests(unittest.TestCase):
         assignments = assignments_from_result(result, "C1f")
         self.assertEqual(assignments.f_splits, {"t1": "test"})
 
+    def test_extracts_both_c2_entity_sides(self):
+        result = ({"C2": [{"l1": "train"}]}, {"C2": [{"t1": "train"}]},
+                  {"C2": [{("l1", "t1"): "train"}]})
+        assignments = assignments_from_result(result, "C2")
+        self.assertEqual(assignments.e_splits["l1"], "train")
+        self.assertEqual(assignments.f_splits["t1"], "train")
+
 
 if __name__ == "__main__":
     unittest.main()

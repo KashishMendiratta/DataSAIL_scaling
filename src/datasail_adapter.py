@@ -106,3 +106,32 @@ def run_c1f(
         verbose="W",
     )
     return assignments_from_result(result, "C1f")
+
+
+def run_c2(
+    ligand_smiles: Mapping[str, str], ligand_weights: Mapping[str, float],
+    ligand_names: Sequence[str], ligand_similarity: np.ndarray,
+    target_sequences: Mapping[str, str], target_weights: Mapping[str, float],
+    target_names: Sequence[str], target_similarity: np.ndarray,
+    interactions: list[tuple[str, str]], *, splits: Mapping[str, float],
+    ligand_clusters: int, target_clusters: int, max_sec: int, threads: int,
+) -> DataSAILAssignments:
+    """Run C2 with precomputed similarities and consume in-memory assignments."""
+    from datasail.sail import datasail
+
+    names = list(splits)
+    result = datasail(
+        techniques=["C2"], inter=interactions,
+        e_type="M", e_data=dict(ligand_smiles), e_weights=dict(ligand_weights),
+        e_sim=(list(ligand_names), np.asarray(ligand_similarity, dtype=float)),
+        e_clusters=ligand_clusters,
+        f_type="P", f_data=dict(target_sequences), f_weights=dict(target_weights),
+        f_sim=(list(target_names), np.asarray(target_similarity, dtype=float)),
+        f_clusters=target_clusters,
+        splits=[splits[name] for name in names], names=names,
+        runs=1, max_sec=max_sec, threads=threads, verbose="W",
+    )
+    assignments = assignments_from_result(result, "C2")
+    if not assignments.e_splits or not assignments.f_splits:
+        raise ValueError("DataSAIL returned incomplete C2 entity assignments")
+    return assignments

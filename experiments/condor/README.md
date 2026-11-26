@@ -88,3 +88,19 @@ experiments/condor/submit_pinned.sh \
 The validator exhaustively computes the hashed 3-mer cosine maximum across all
 cross-split target pairs and audits source accounting, regime identity, affinity
 and degree distributions, and the complete interaction graph.
+
+## BindingDB scaled C2
+
+After C1f is accepted, submit the full graph-aware double-cold candidate:
+
+```bash
+experiments/condor/submit_pinned.sh \
+  experiments/condor/bindingdb_c2.sub \
+  repo_dir="$HOME/DataSAIL_scaling_repro" seed=42 threads=1
+```
+
+The full run uses approximately 1,349 canonical-chemical anchors and 526 target
+anchors. Every mismatched-endpoint observation is retained in the accounting
+table with an explicit exclusion reason. The candidate hard-fails below 80%
+retention, beyond a five-point retained-ratio deviation, or on any atomicity,
+duplicate, or retained cross-endpoint conflict.
