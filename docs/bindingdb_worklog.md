@@ -249,3 +249,65 @@ runtime, and peak memory.
   manifest is explicitly marked as pending until chemical-similarity, protein-
   similarity applicability, and connected-component audits pass.
 
+## 2026-11-26 — Full scaled C1e candidate 77206.0 passed core gates
+
+- Condor completed normally (`JobStatus=4`, exit code 0, no signal) after 1,073
+  seconds of remote wall time. The pipeline recorded 1,058.00 seconds total:
+  113.06 seconds loading chemical statistics, 0.75 seconds selecting anchors,
+  4.36 seconds in DataSAIL, 721.36 seconds extending assignments, and 183.93
+  seconds auditing the result.
+- Peak process memory was 751.16 MiB; Condor reported 571 MiB against the 8 GiB
+  request. The full C1e candidate was therefore neither memory nor runtime
+  constrained.
+- Frozen provenance: Git commit
+  `fb04bac7869c888c78cabce82b24b65f26592ae9`, clean worktree, pinned container
+  digest `sha256:9ac1d19ae19c707d1a6df021248b52db9f15a082fbaface397b27132d2c90abd`,
+  and Condor job `77206.0`.
+- Assigned all 1,348,653 canonical chemicals, expanding to all 1,357,780
+  BindingDB ligand IDs. DataSAIL split 1,349 degree-stratified anchors through
+  its Python return value; no generated assignment TSV was used as input.
+- Retained all 3,036,683 affinity observations and dropped zero. Interaction
+  ratios were 69.8106% train, 20.0283% validation, and 10.1611% test versus the
+  requested 70/20/10.
+- Duplicate-observation split conflicts: zero. Canonical-chemical split
+  conflicts: zero. All four affinity types occur in every split and their
+  counts and mean p-affinities are stored in the run manifest.
+- The stderr messages for `cd-hit`, `diamond`, `mmseqs`, `mash`, `foldseek`, and
+  `TMalign` are DataSAIL optional-tool discovery probes. C1e used RDKit molecular
+  fingerprints, completed successfully, and did not require those executables;
+  this is not a technique change or failed validation.
+- Status remains `core_assignments_passed_pending_similarity_and_graph_audits`.
+  This candidate is not yet accepted as the final C1e split. The next gate must
+  report maximum cross-split ligand similarity, protein-similarity
+  applicability, unseen-entity rates, connected components, and entity-degree
+  distributions before changing the status to passed.
+
+## 2026-11-26 — Full C1e acceptance validator implemented
+
+- Added a separate, resumable validation stage so the successful assignment
+  database from job 77206.0 remains immutable. The stage writes a new
+  `validation_report.json` and exits nonzero if a hard gate cannot be proven.
+- Exact entity/accounting gates compare unique assignments against every
+  prepared ligand, join every retained observation, require a status or
+  exclusion reason for every source measurement, and reject duplicate groups
+  spanning splits. Requested and actual interaction ratios and retained/dropped
+  counts are repeated in the validation report.
+- Ligand maximum-similarity technique: scan complete Morgan radius-2, 2048-bit
+  fingerprints until an identical fingerprint occurs in different splits.
+  Fingerprint bytes are compared directly. Such a pair certifies the global
+  Tanimoto maximum as exactly 1.0 because no value can exceed 1. If no exact
+  certificate is found, the validator fails instead of substituting an
+  unlabelled sampled maximum.
+- Protein maximum-similarity technique: C1e leaves targets unconstrained. An
+  identical target sequence observed through interactions in multiple splits
+  certifies the exact cross-split protein-similarity maximum as 1.0. The
+  observed unseen-target rate is reported but is not optimized in C1e; the
+  unseen-test-ligand identity rate must be 1.0.
+- Affinity summaries now include count, mean, standard deviation, minimum, and
+  maximum for every affinity type in every split. Full ligand/target degree
+  distributions and bipartite connected-component size distributions are
+  computed over all prepared nodes and all observation edges.
+- The validator requests 1 CPU and 8 GiB RAM. It records per-stage runtime,
+  peak memory, Git/container/Condor provenance, and fails before writing a
+  `passed` status if any required gate is incomplete.
+

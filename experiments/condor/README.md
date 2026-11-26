@@ -47,3 +47,16 @@ This uses canonical chemical structures as atomic splitting units, approximately
 1,350 degree-stratified anchors, interaction-degree weights, k=5 exact
 Tanimoto-to-anchor assignment, and 10 DataSAIL clusters. Its core assignment
 manifest remains pending until the separate similarity and graph audits pass.
+
+After the candidate finishes successfully, run its hard validation gate:
+
+```bash
+experiments/condor/submit_pinned.sh \
+  experiments/condor/bindingdb_c1e_validation.sub \
+  repo_dir="$HOME/DataSAIL_scaling_repro"
+```
+
+This stage fails on incomplete entity or source-measurement accounting, dropped
+observations, duplicate leakage, incorrect cold-ligand identity, uncertified
+maximum cross-split similarities, missing affinity strata, or incomplete graph
+statistics. It writes `validation_report.json` beside the C1e candidate.
