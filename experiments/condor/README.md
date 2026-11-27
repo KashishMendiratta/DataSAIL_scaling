@@ -227,16 +227,48 @@ the observed maximum and the count/fraction of truncated rows. Do not scale the
 model unless it improves the aggregate C1f and C2 test metrics over both the
 linear and hashed-3-mer nonlinear baselines.
 
-Before that comparison, run a two-epoch 10k/5k/5k feasibility gate:
+The submit description fixes these caps and epoch limit explicitly. Do not pass
+cap overrides to this file; create a separately named submit description if a
+different experiment size is required.
+
+## BindingDB cached ESM-2 target model
+
+The next cold-target gate replaces the from-scratch/truncated protein CNN with
+cached pretrained ESM-2 8M embeddings. Build the dedicated image once; its fixed
+`TORCH_HOME` contains the checkpoint, so Condor requires no network access:
 
 ```bash
-DATASAIL_IMAGE_REF='docker.io/kashishhm/datasail-dmpnn@sha256:4dbb6cda9267583df3a499647d1f8c437ba26a47d0a57fa0e3ae4497fcdb67ce' \
-  experiments/condor/submit_pinned.sh \
-  experiments/condor/bindingdb_sequence_dual_encoder.sub \
-  repo_dir="$HOME/DataSAIL_scaling_repro" train_cap=10000 val_cap=5000 \
-  test_cap=5000 max_epochs=2 run_label=10k_smoke
+docker buildx build --platform linux/amd64 \
+  -f experiments/condor/Dockerfile.esm \
+  -t docker.io/kashishhm/datasail-esm:esm2-8m \
+  --push .
+docker buildx imagetools inspect docker.io/kashishhm/datasail-esm:esm2-8m
 ```
 
-Use this run only to validate execution, peak memory, per-stage runtime, and
-protein-truncation accounting. If it completes safely, submit the file without
-the cap overrides to run the comparable 100k gate.
+Using the resulting immutable digest, first embed all 10,518 unique targets:
+
+```bash
+DATASAIL_IMAGE_REF='docker.io/kashishhm/datasail-esm@sha256:REPLACE_WITH_DIGEST' \
+  experiments/condor/submit_pinned.sh \
+  experiments/condor/bindingdb_esm_cache.sub \
+  repo_dir="$HOME/DataSAIL_scaling_repro"
+```
+
+The cache stage uses overlapping 1,000-residue chunks at stride 800. Residue
+vectors in overlaps are averaged before whole-protein mean pooling, so every
+residue is covered. Its manifest records the image-pinned checkpoint checksum,
+cache checksum, target/chunk counts, runtime, memory, and maximum length. The
+stage must report exactly 10,518 targets and complete sequence coverage.
+
+Only after that gate passes, run the fixed 100k comparison using the same image:
+
+```bash
+DATASAIL_IMAGE_REF='docker.io/kashishhm/datasail-esm@sha256:REPLACE_WITH_DIGEST' \
+  experiments/condor/submit_pinned.sh \
+  experiments/condor/bindingdb_esm_dual_encoder.sub \
+  repo_dir="$HOME/DataSAIL_scaling_repro"
+```
+
+Advancement requires improvement over the sequence-CNN C1f result and no
+material C2 regression. Do not add a ligand D-MPNN until this isolated protein
+representation test is accepted.

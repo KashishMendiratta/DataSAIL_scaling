@@ -1,0 +1,11 @@
+FROM docker.io/kashishhm/datasail-dmpnn@sha256:4dbb6cda9267583df3a499647d1f8c437ba26a47d0a57fa0e3ae4497fcdb67ce
+
+ENV TORCH_HOME=/opt/torch-cache
+
+RUN python -m pip install --no-cache-dir fair-esm==2.0.0
+
+# Bake the exact checkpoint into the image so Condor execution needs no network.
+RUN python -c "import esm; esm.pretrained.esm2_t6_8M_UR50D()"
+RUN python -c "import hashlib, pathlib, torch; p=pathlib.Path(torch.hub.get_dir())/'checkpoints/esm2_t6_8M_UR50D.pt'; print(p, hashlib.sha256(p.read_bytes()).hexdigest())"
+
+WORKDIR /workspace
