@@ -1,0 +1,30 @@
+# Full-DataSAIL ablation for QM9 and MUV.
+# Isolates the eigensolver change from the e_clusters change.
+universe = docker
+docker_image = $(image)
+
+environment = "DATASAIL_RUN_ID=full_$(solver)_e$(e_clusters) DATASAIL_CONTAINER_REF=$(image) DATASAIL_GIT_COMMIT=$(git_commit) DATASAIL_GIT_WORKTREE_DIRTY=$(git_dirty) CONDOR_JOB_ID=$(ClusterId).$(ProcId)"
+
+executable = experiments/condor/run_full_datasail_solver_cluster_ablation.sh
+arguments = $(repo_dir) $(dataset) $(solver) $(e_clusters)
+initialdir = $(repo_dir)
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
++WantGPUHomeMounted = true
+requirements = (UidDomain == "cs.uni-saarland.de")
+
+request_cpus = 1
+request_memory = 1024GB
+request_disk = 200GB
+
+log = logs/condor/full-$(solver)-e$(e_clusters).$(dataset).$(ClusterId).log
+output = logs/condor/full-$(solver)-e$(e_clusters).$(dataset).$(ClusterId).$(ProcId).out
+error = logs/condor/full-$(solver)-e$(e_clusters).$(dataset).$(ClusterId).$(ProcId).err
+
+queue solver, e_clusters, dataset from (
+arpack 10 qm9
+arpack 10 muv
+lobpcg 50 qm9
+lobpcg 50 muv
+)

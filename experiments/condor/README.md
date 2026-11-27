@@ -16,6 +16,24 @@ Every Condor submit description exports `DATASAIL_CONTAINER_REF` and the Condor 
 
 A digest pins software image contents. It does not pin the Condor worker hardware or restore provenance for historical runs.
 
+## QM9/MUV eigensolver-cluster ablation
+
+To distinguish the effect of changing the spectral eigensolver from the effect
+of reducing the number of clusters, submit the four-job ablation from a clean,
+committed worktree:
+
+```bash
+experiments/condor/submit_pinned.sh \
+  experiments/condor/full_datasail_solver_cluster_ablation.sub \
+  repo_dir="$HOME/DataSAIL_scaling_repro"
+```
+
+The matrix runs ARPACK with 10 clusters and LOBPCG with 50 clusters for both
+QM9 and MUV. Each job requests one CPU, 1,024 GB memory, 200 GB disk, and a
+12-hour DataSAIL limit. Outputs are isolated under the run IDs
+`full_arpack_e10` and `full_lobpcg_e50`; Condor logs include the solver, cluster
+count, and dataset in their filenames.
+
 ## BindingDB preparation
 
 The full frozen BindingDB release is prepared on Condor after the 10k, 100k,
