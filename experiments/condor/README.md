@@ -150,3 +150,16 @@ The gate trains separate C1e/C1f/C2 Huber-SGD regressors on frozen caps of
 protein 3-mers, and affinity-type indicators. Metrics are reported overall and
 per Ki/Kd/IC50/EC50. Inequality-censored measurements are excluded from this
 point-regression baseline by design.
+
+If the corrected 100k baseline passes, run the controlled 500k training-data
+sensitivity before selecting a heavier model:
+
+```bash
+experiments/condor/submit_pinned.sh \
+  experiments/condor/bindingdb_predictive_500k.sub \
+  repo_dir="$HOME/DataSAIL_scaling_repro"
+```
+
+This preserves the feature/model/seed/epoch configuration, increases training
+to 500,000 rows and validation/test to 50,000 rows, writes to a separate output
+directory, and requests 16 GB because sampled row materialization is in memory.
