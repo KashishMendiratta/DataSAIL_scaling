@@ -122,14 +122,16 @@ def metric_rows(regime, split, rows, truth, prediction):
     return output
 
 
-def run_regime(prepared, database, regime, output_dir, args, device):
+def run_regime(prepared, database, regime, output_dir, args, device,
+               encoder_class=DenseEncoder, model_class=DualEncoder,
+               model_slug="dual_encoder"):
     started = time.perf_counter()
     with sqlite3.connect(prepared) as connection:
         connection.execute("ATTACH DATABASE ? AS splitdb", (str(database.resolve()),))
         train_rows = load_rows(connection, regime, "train", args.train_cap, args.seed)
         val_rows = load_rows(connection, regime, "val", args.val_cap, args.seed + 1)
         test_rows = load_rows(connection, regime, "test", args.test_cap, args.seed + 2)
-    encoding_started = time.perf_counter(); encoder = DenseEncoder()
+    encoding_started = time.perf_counter(); encoder = encoder_class()
     train_encoded = encoder.transform(train_rows)
     val_encoded = encoder.transform(val_rows)
     test_encoded = encoder.transform(test_rows)
@@ -140,11 +142,11 @@ def run_regime(prepared, database, regime, output_dir, args, device):
     loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,
                         generator=generator, num_workers=0)
     torch.manual_seed(args.seed)
-    model = DualEncoder().to(device)
+    model = model_class().to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate, weight_decay=1e-4)
     loss_function = nn.SmoothL1Loss(beta=1.0)
     best_loss, best_epoch, stale = float("inf"), 0, 0
-    best_path = output_dir / f"{regime}_dual_encoder.pt"
+    best_path = output_dir / f"{regime}_{model_slug}.pt"
     history = []
     training_started = time.perf_counter()
     for epoch in range(1, args.max_epochs + 1):
@@ -189,6 +191,8 @@ def run_regime(prepared, database, regime, output_dir, args, device):
         "total_seconds": time.perf_counter()-started, "best_epoch": best_epoch,
         "best_validation_rmse": best_loss, "history": history, "metrics": metrics_out,
     }
+    if hasattr(encoder, "diagnostics"):
+        result["encoder_diagnostics"] = encoder.diagnostics()
     del train_encoded, val_encoded, test_encoded, train_dataset, loader, model
     gc.collect()
     return result, predictions

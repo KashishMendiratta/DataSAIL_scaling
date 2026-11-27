@@ -1,0 +1,22 @@
+universe = docker
+train_cap = 100000
+val_cap = 25000
+test_cap = 25000
+max_epochs = 8
+run_label = 100k
+docker_image = $(image)
+environment = "DATASAIL_CONTAINER_REF=$(image) DATASAIL_GIT_COMMIT=$(git_commit) DATASAIL_GIT_WORKTREE_DIRTY=$(git_dirty) CONDOR_JOB_ID=$(ClusterId).$(ProcId) MPLCONFIGDIR=/tmp/matplotlib LOKY_MAX_CPU_COUNT=8 OMP_NUM_THREADS=8 MKL_NUM_THREADS=8"
+executable = experiments/condor/run_bindingdb_sequence_dual_encoder.sh
+arguments = $(repo_dir) $(train_cap) $(val_cap) $(test_cap) $(max_epochs) $(run_label)
+initialdir = $(repo_dir)
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
++WantGPUHomeMounted = true
+requirements = (UidDomain == "cs.uni-saarland.de")
+request_cpus = 8
+request_memory = 24GB
+request_disk = 12GB
+log = $(repo_dir)/logs/condor/bindingdb.sequence_dual_encoder.$(ClusterId).log
+output = $(repo_dir)/logs/condor/bindingdb.sequence_dual_encoder.$(ClusterId).$(ProcId).out
+error = $(repo_dir)/logs/condor/bindingdb.sequence_dual_encoder.$(ClusterId).$(ProcId).err
+queue 1

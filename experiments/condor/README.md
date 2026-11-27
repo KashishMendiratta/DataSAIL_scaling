@@ -206,3 +206,37 @@ DATASAIL_IMAGE_REF='docker.io/kashishhm/datasail-dmpnn@sha256:REPLACE_WITH_DIGES
 
 This override affects only that invocation. The helper still rejects mutable
 tags and dirty worktrees, and records the selected digest in the model manifest.
+
+## BindingDB sequence-aware dual encoder
+
+The next biological-representation gate keeps the accepted splits, corrected
+samples, exact-affinity labels, and chiral Morgan ligand tower fixed, but
+replaces hashed protein 3-mers with a trainable amino-acid embedding and
+multi-kernel sequence CNN. Submit it with the same pinned CPU PyTorch image:
+
+```bash
+DATASAIL_IMAGE_REF='docker.io/kashishhm/datasail-dmpnn@sha256:4dbb6cda9267583df3a499647d1f8c437ba26a47d0a57fa0e3ae4497fcdb67ce' \
+  experiments/condor/submit_pinned.sh \
+  experiments/condor/bindingdb_sequence_dual_encoder.sub \
+  repo_dir="$HOME/DataSAIL_scaling_repro"
+```
+
+The controlled gate uses 100k/25k/25k rows per regime, eight CPUs, 24 GB, and
+early stopping. Proteins are encoded up to 512 residues; the manifest reports
+the observed maximum and the count/fraction of truncated rows. Do not scale the
+model unless it improves the aggregate C1f and C2 test metrics over both the
+linear and hashed-3-mer nonlinear baselines.
+
+Before that comparison, run a two-epoch 10k/5k/5k feasibility gate:
+
+```bash
+DATASAIL_IMAGE_REF='docker.io/kashishhm/datasail-dmpnn@sha256:4dbb6cda9267583df3a499647d1f8c437ba26a47d0a57fa0e3ae4497fcdb67ce' \
+  experiments/condor/submit_pinned.sh \
+  experiments/condor/bindingdb_sequence_dual_encoder.sub \
+  repo_dir="$HOME/DataSAIL_scaling_repro" train_cap=10000 val_cap=5000 \
+  test_cap=5000 max_epochs=2 run_label=10k_smoke
+```
+
+Use this run only to validate execution, peak memory, per-stage runtime, and
+protein-truncation accounting. If it completes safely, submit the file without
+the cap overrides to run the comparable 100k gate.
