@@ -163,3 +163,20 @@ experiments/condor/submit_pinned.sh \
 This preserves the feature/model/seed/epoch configuration, increases training
 to 500,000 rows and validation/test to 50,000 rows, writes to a separate output
 directory, and requests 16 GB because sampled row materialization is in memory.
+
+## BindingDB nonlinear dual encoder
+
+After the 500k linear sensitivity establishes saturation, run the controlled
+100k nonlinear ligand-protein model:
+
+```bash
+experiments/condor/submit_pinned.sh \
+  experiments/condor/bindingdb_dual_encoder.sub \
+  repo_dir="$HOME/DataSAIL_scaling_repro"
+```
+
+The model has separate nonlinear ligand and protein towers, a learned affinity-
+type embedding, and a fusion regressor. It uses the corrected 100k/25k/25k
+samples for direct comparison with the accepted linear baseline. The runner
+checks for PyTorch before loading data. The pinned image is CPU-only, so the
+gate requests four CPUs and 16 GB rather than an unusable GPU.
