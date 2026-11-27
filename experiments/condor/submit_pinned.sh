@@ -7,7 +7,7 @@ fi
 submit_file="$1"
 shift
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-image_ref="$(<"${script_dir}/container-image.ref")"
+image_ref="${DATASAIL_IMAGE_REF:-$(<"${script_dir}/container-image.ref")}"
 repo_root="$(cd -- "${script_dir}/../.." && pwd)"
 if [[ ! "$image_ref" =~ @sha256:[0-9a-f]{64}$ ]]; then
   echo "Container reference is not digest-pinned: $image_ref" >&2

@@ -180,3 +180,29 @@ type embedding, and a fusion regressor. It uses the corrected 100k/25k/25k
 samples for direct comparison with the accepted linear baseline. The runner
 checks for PyTorch before loading data. The pinned image is CPU-only, so the
 gate requests four CPUs and 16 GB rather than an unusable GPU.
+
+The standard scaling image does not contain PyTorch. Build and push the
+dedicated CPU image once (from a Docker-authenticated machine), then inspect
+the pushed manifest to obtain its immutable `linux/amd64` digest:
+
+```bash
+docker buildx build --platform linux/amd64 \
+  -f experiments/condor/Dockerfile.dmpnn \
+  -t docker.io/kashishhm/datasail-dmpnn:cpu-2.5.1 \
+  --push .
+docker buildx imagetools inspect \
+  docker.io/kashishhm/datasail-dmpnn:cpu-2.5.1
+```
+
+Supply the resulting repository digest to the same provenance-enforcing helper;
+the value must end in `@sha256:` followed by 64 hexadecimal characters:
+
+```bash
+DATASAIL_IMAGE_REF='docker.io/kashishhm/datasail-dmpnn@sha256:REPLACE_WITH_DIGEST' \
+  experiments/condor/submit_pinned.sh \
+  experiments/condor/bindingdb_dual_encoder.sub \
+  repo_dir="$HOME/DataSAIL_scaling_repro"
+```
+
+This override affects only that invocation. The helper still rejects mutable
+tags and dirty worktrees, and records the selected digest in the model manifest.
